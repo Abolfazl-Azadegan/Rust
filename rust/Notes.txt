@@ -1,0 +1,445 @@
+
+
+
+------- Installation of Rust -------
+----------------------------------------------------------------------------------------------------------------------------------------------
+[Description] ----> To install rust we need to run below commands: <---- [Description]
+
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt install build-essential
+
+**[Note]** ----> build-essential is a meta-package in Debian/Ubuntu Linux that installs the basic tools you normally need to compile software from source code.
+
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+[Description] ----> For windows we run below commands: <---- [Description]
+
+winget install Rustlang.Rustup
+rustc --version
+cargo --version
+
+**[Note]** ----> TO run the rust codes we need to install linker in windows. we can run below command to install the required packages:
+
+winget install Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+[Description] ----> Install required Visual studio code extensions
+
+rust-analyzer
+
+
+
+[Description] ----> Hello world in Windows:  <---- [Description]
+
+**[Note]** ----> We need to run below commands in powersell in the directory which we want our Rust files be generated. Here, rust is a sample name for our Rust project.
+
+cargo new rust
+cd rust
+code .
+
+
+**[Note]** ----> Now the Visual Studio Code will be open in the project's directory. We CD into the "rust" directory and run below command to run the Rust Hello-World code
+
+cargo run
+
+**[Note]** ----> After running this command, Rust will generate a directory called Target which contains many files which one of them is "rust.exe" which is executable file in Windows.
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+**[Note]** Cargo is Rust's build system and package manager. It is one of the most important parts of the Rust ecosystem.
+
+If you're coming from C/C++, a useful first approximation is:
+
+Rust
+│
+├── rustc
+│     └── compiler
+│
+└── cargo
+      ├── build system
+      ├── dependency/package manager
+      ├── project manager
+      ├── test runner
+      └── command runner
+
+Let's break that down from the beginning.
+
+1. rustc vs cargo
+
+You already used:
+
+rustc main.rs
+
+rustc is the Rust compiler.
+It takes Rust source code:
+
+main.rs
+   │
+   │ rustc
+   ▼
+machine code
+   │
+   ▼
+executable
+
+Cargo operates at a higher level.
+Instead of telling the compiler exactly what source file to compile, you tell Cargo:
+
+cargo build
+
+Cargo figures out:
+	which source files belong to the project
+	which dependencies are required
+	what compiler options to use
+	what needs to be rebuilt
+	where to put the resulting binaries
+	
+2. A Rust project normally looks like this
+
+When you run:
+
+cargo new hello
+
+Cargo creates:
+
+hello/
+│
+├── Cargo.toml
+│
+└── src/
+    └── main.rs
+
+The important file here is:
+
+Cargo.toml
+
+Think of it somewhat like a project's configuration/manifest file.
+
+For example:
+
+[package]
+name = "hello"
+version = "0.1.0"
+edition = "2024"
+
+This tells Cargo basic information about the project.
+
+3. Cargo can compile the project
+
+From inside:
+
+hello/
+
+you can run:
+
+cargo build
+
+Cargo will essentially do:
+
+Cargo.toml
+    │
+    ▼
+Cargo determines project configuration
+    │
+    ▼
+Find source code
+    │
+    ▼
+Invoke rustc
+    │
+    ▼
+Executable
+
+The executable will normally appear under:
+
+target/
+└── debug/
+    └── hello.exe
+
+So Cargo doesn't replace rustc.
+
+Rather:
+
+cargo
+  │
+  └── uses rustc
+          │
+          ▼
+       compiler
+4. cargo run
+
+This is what you used earlier:
+
+cargo run
+
+It essentially means:
+
+Build my Rust program and then run it.
+
+For example:
+
+cargo run
+    │
+    ├── compile if necessary
+    │
+    └── execute program
+
+If your program contains:
+
+fn main() {
+    println!("Hello!");
+}
+
+then:
+
+cargo run
+
+produces:
+
+Hello!
+5. Cargo manages dependencies
+
+This is one of Cargo's most important jobs.
+
+Suppose your program needs an external Rust library.
+
+In Rust, libraries/packages are commonly called crates.
+
+For example, suppose you want to use the serde crate.
+
+You can declare it in Cargo.toml:
+
+[dependencies]
+serde = "1"
+
+Now Cargo knows:
+
+This project depends on the serde package.
+
+When you run:
+
+cargo build
+
+Cargo resolves the dependency and downloads/builds what is needed.
+
+The basic relationship is:
+
+Your project
+     │
+     ├── your source code
+     │
+     └── dependencies
+             │
+             ├── serde
+             ├── ...
+             └── ...
+
+This is similar to package managers you may have encountered elsewhere:
+
+Python      → pip
+Node.js     → npm
+Rust        → Cargo
+
+But Cargo is more deeply integrated into Rust's build system.
+
+6. Cargo.lock
+
+When Cargo resolves dependencies, it creates:
+
+Cargo.lock
+
+For example:
+
+hello/
+├── Cargo.toml
+├── Cargo.lock
+└── src/
+    └── main.rs
+
+Cargo.toml says approximately:
+
+I need version 1.x of this dependency.
+
+Cargo.lock records the specific versions that were resolved.
+
+This allows builds to be reproducible.
+
+7. cargo check
+
+Another very useful command is:
+
+cargo check
+
+It checks whether your Rust code is valid without producing the final executable.
+
+For example:
+
+cargo check
+
+is often much faster than:
+
+cargo build
+
+when you're just writing code and want to see whether it compiles.
+
+Your workflow can therefore be:
+
+write code
+   ↓
+cargo check
+   ↓
+fix errors
+   ↓
+cargo check
+   ↓
+cargo build
+   ↓
+cargo run
+8. cargo test
+
+Cargo also runs tests:
+
+cargo test
+
+Rust has testing support built into the language/toolchain, and Cargo provides the project-level mechanism for discovering and running those tests.
+
+9. cargo new
+
+You've already seen this:
+
+cargo new myproject
+
+It creates a new Rust project.
+
+For example:
+
+cargo new networking
+
+creates:
+
+networking/
+├── Cargo.toml
+└── src/
+    └── main.rs
+
+You can then:
+
+cd networking
+cargo run
+10. cargo build --release
+
+Normally:
+
+cargo build
+
+creates a debug build.
+
+For a production-oriented optimized build:
+
+cargo build --release
+
+The resulting executable goes into:
+
+target/
+└── release/
+    └── networking.exe
+
+So:
+
+cargo build
+       ↓
+target/debug/
+
+cargo build --release
+       ↓
+target/release/
+
+The release build applies optimizations and is normally what you use when performance matters.
+
+11. Why Cargo is especially important in Rust
+
+Imagine you are writing a large system program.
+
+You might have:
+
+my-project/
+├── Cargo.toml
+├── Cargo.lock
+├── src/
+│   ├── main.rs
+│   ├── network.rs
+│   ├── storage.rs
+│   └── config.rs
+│
+└── tests/
+    └── integration.rs
+
+And your project might depend on:
+
+serde
+tokio
+clap
+anyhow
+...
+
+Without Cargo, you'd have to manually manage:
+
+compilation
+dependency downloads
+dependency versions
+compiler arguments
+linking
+build artifacts
+tests
+different build configurations
+
+Cargo handles these things for you.
+
+The mental model I recommend
+
+Don't think:
+
+"cargo is another Rust compiler."
+
+Instead think:
+
+                 Rust project
+                      │
+                      ▼
+                   Cargo
+                      │
+        ┌─────────────┼─────────────┐
+        │             │             │
+   dependencies     build        testing
+        │             │             │
+        ▼             ▼             ▼
+      crates        rustc        test runner
+                      │
+                      ▼
+                  executable
+
+So when you type:
+
+cargo run
+
+you're basically saying:
+
+"Cargo, take care of building my Rust project using the Rust toolchain, and then run the resulting program."
+
+And when you type:
+
+rustc main.rs
+
+you're saying:
+
+"Rust compiler, compile this particular source file."
+
+For normal Rust development, you'll use Cargo much more often than you directly use rustc.
+
+
+
+
+
