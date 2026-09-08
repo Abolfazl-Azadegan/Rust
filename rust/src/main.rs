@@ -274,5 +274,43 @@ fn main() {
     */
 
 
+    /*This will generate warning for use because the unsed_variable is defined but is not used.*/
+    //let unsed_variable:i8 = 1000;
+    /*We can solve this issue by adding _ to the variable name like below code.*/
+    let _unsed_variable:i8 = 120;
+
+    /*This will create a character variable*/
+    let _character = 'A';
+
+    let _byte = b'A';
+    /*when you put b before the character: b'A'you are telling Rust:
+    Give me the ASCII/byte value of this character as a u8.
+    Therefore:
+        let byte = b'A';
+    has:
+    byte
+    │
+    └── type: u8
+        value: 65
+    */
+    /*Compare A and b'A'
+    This distinction is extremely important:
+    'A'is char
+    while:
+    b'A'is u8
+    */
+
+    /*Because byte is a u8. You can also print it as hexadecimal:*/
+
+    let byte = b'A';
+    println!("The Hex format of the varibale byte is: {:x}", byte);
+    println!("The Decimal format of the varibale byte is: {}", byte);
+
+    let _var_float_64 = 2.5; //The default variable size is 64 bit
+    let _var_float_32:f32 = 2.5; //This is 32 bit floating point variable 
+
+
+
+
 
 }
