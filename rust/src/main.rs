@@ -276,7 +276,7 @@ fn main() {
 
 
 
-
+    //-----------------------------------------------------------------------------------------------
 
     /*Tuple
 
@@ -389,6 +389,8 @@ fn main() {
     println!("x3 is equal to: {}", x3);
     println!("x4 is equl to: P{}", x4);
 
+
+    //-----------------------------------------------------------------------------------------------
 
     /*Array
     An array contains multiple values of the same type and has a fixed size.
@@ -580,6 +582,305 @@ fn main() {
     When the condition is true, the program panics.
     So an out-of-bounds array access is essentially a situation where Rust internally triggers a panic.
     */
+
+    /*But sometimes you don't want a panic
+
+    Suppose you're not sure whether an index is valid.
+    You can check it yourself:
+
+    fn main() {
+        let numbers = [10, 20, 30];
+        let index = 5;
+
+        if index < numbers.len() {
+            println!("{}", numbers[index]);
+        } else {
+            println!("Invalid index");
+        }
+    }
+
+    Now the program doesn't panic.
+    Another very important method is .get():
+
+    let numbers = [10, 20, 30];
+
+    let value = numbers.get(5);
+
+    Instead of panicking, .get() returns an Option.
+    For an invalid index:
+
+    numbers.get(5)
+        │
+        ▼
+       None
+
+    For a valid index:
+
+    numbers.get(1)
+        │
+        ▼
+     Some(20)
+
+    You'll eventually learn that Option<T> is one of Rust's most important types.
+    */
+
+    /*The big picture
+
+    There are two different approaches:
+
+    Direct indexing
+    numbers[index]
+
+    You are telling Rust:
+
+    "I believe this index is valid."
+
+    If it isn't:
+
+    invalid index
+        ↓
+    panic!
+        ↓
+    program terminates
+    Safe lookup
+    numbers.get(index)
+
+    You're saying:
+
+    "I'm not sure whether this index exists. Tell me whether you found it."
+
+                get(index)
+                    │
+            ┌───────┴───────┐
+            ▼               ▼
+        Some(value)        None
+          found           not found
+    */
+
+
+    //-----------------------------------------------------------------------------------------------
+
+    /*Vector
+    A vector in Rust is a collection that stores multiple values of the same type, but unlike an array, 
+    its size can change at runtime.
+
+    Vector vs Array
+
+    This is the easiest way to understand a vector.
+
+    Array
+    let numbers = [10, 20, 30];
+
+    The array has a fixed size:
+
+    [i32; 3]
+
+    You cannot make it contain 4 elements.
+
+    Vector
+    let mut numbers = vec![10, 20, 30];
+
+    The vector can grow:
+
+    numbers.push(40);
+
+    Now:
+
+    numbers
+    ┌────┬────┬────┬────┐
+    │ 10 │ 20 │ 30 │ 40 │
+    └────┴────┴────┴────┘
+
+    So:
+
+    Array                 Vector
+    ─────                 ──────
+    [i32; 3]              Vec<i32>
+    fixed size            dynamic size
+    same type             same type    
+
+    */
+
+
+    // How do you create a vector? There are several ways. Using vec!
+    // The most convenient:
+
+    let numbers_1 = vec![10, 20, 30];
+
+    //Rust infers: Vec<i32>
+   
+    println!("-------------------------------------------------------------");
+    println!("The numbers_1 vector is : {:?}", numbers_1);
+    println!("The first element of the number_1 vector is: {}", numbers_1[0]);
+    println!("The second element of the number_1 vector is: {}", numbers_1[1]);
+    println!("The third element of the number_1 vector is: {}", numbers_1[2]);
+    println!("-------------------------------------------------------------");
+
+
+    // You can also specify the type:
+    let mut numbers_2: Vec<i32> = vec![100, 200, 300];
+
+
+    // Creating an empty vector
+    let mut numbers_3: Vec<i32> = Vec::new();
+
+    //Now: numbers = []
+    println!("This is the numbers_3 vector: {:#?}", numbers_3);
+    // Then:
+
+    numbers_3.push(10);
+    numbers_3.push(20);
+
+    //gives: [10, 20]
+    println!("This is the numbers_3 vector: {:#?}", numbers_3);
+    println!("This is first member of the numbers_3 vector: {}", numbers_3[0]);
+    println!("This is second member of the numbers_3 vector: {}", numbers_3[1]);
+    println!("-------------------------------------------------------------");
+
+    println!("This is numbers_2 vector: {:?}", numbers_2);
+    numbers_2.pop();
+    println!("This is numbers_2 vector after first pop: {:?}", numbers_2);
+    numbers_2.pop();
+    println!("This is numbers_2 vector after second pop: {:?}", numbers_2);
+    println!("-------------------------------------------------------------");
+
+
+    // Accessing elements
+    // Just like arrays, you can use an index:
+
+    let numbers = vec![10, 20, 30];
+
+    println!("This is first element of numbers: {}", numbers[1]);
+
+    //Output: 20
+
+    /* The indices are:
+
+    ┌────┬────┬────┐
+    │ 10 │ 20 │ 30 │
+    └────┴────┴────┘
+       0    1    2
+
+    Just like arrays, this:
+
+    numbers[10]
+
+    will panic if the index is outside the vector.
+    */
+
+    // .get() works with vectors too
+
+    //You can avoid a panic with:
+
+    let numbers_4 = vec![10, 20, 30];
+    let value = numbers_4.get(10);
+    println!("This is value with get(10): {:?}", value);
+
+    /* This returns: None
+    rather than panicking.
+    For a valid index: */
+
+    let value = numbers_4.get(1);
+    println!("This is value with get(1): {:?}", value);
+    // you get: Some(20)
+    //This is where the Option type we discussed earlier becomes very useful.
+
+    //-----------------------------------------------------------------------------------------------
+    /*
+    How does a vector actually work in memory?
+
+    This is particularly important for you because you're interested in low-level/system programming.
+
+    A Vec<T> is not simply a fixed block of memory like an array.
+
+    Conceptually, a vector contains three important pieces of information:
+
+    Vec<T>
+    ┌─────────────────────────┐
+    │ pointer                 │ ──────┐
+    │ length                  │       │
+    │ capacity                │       ▼
+    └─────────────────────────┘   heap memory
+                                    ┌────┬────┬────┬──────┐
+                                    │ 10 │ 20 │ 30 │unused│
+                                    └────┴────┴────┴──────┘
+    Pointer
+
+    The vector needs to know where its elements are stored in memory.
+
+    Length
+
+    How many elements currently exist.
+
+    For:
+
+    let numbers = vec![10, 20, 30];
+
+    the length is:
+
+    3
+    Capacity
+
+    How many elements the currently allocated memory can hold before another allocation is required.
+
+    For example, conceptually:
+
+    length   = 3
+    capacity = 4
+
+    means:
+
+    ┌────┬────┬────┬──────┐
+    │ 10 │ 20 │ 30 │ free │
+    └────┴────┴────┴──────┘
+    ↑              ↑
+    used           available
+
+    The exact capacity chosen by Rust is an implementation detail; don't assume it will always be 4.
+
+    What happens when the vector becomes full?
+
+    Suppose conceptually:
+
+    length   = 4
+    capacity = 4
+
+    and you execute:
+
+    numbers.push(50);
+
+    There isn't enough allocated space for another element.
+
+    Rust's vector implementation can allocate a larger memory region, move/copy the existing elements there, and then add the new element.
+
+    Conceptually:
+
+    Before:
+
+    heap
+    ┌────┬────┬────┬────┐
+    │ 10 │ 20 │ 30 │ 40 │
+    └────┴────┴────┴────┘
+    capacity = 4
+
+
+            push(50)
+                │
+                ▼
+
+    allocate larger region
+
+    ┌────┬────┬────┬────┬────┬────┬────┬────┐
+    │ 10 │ 20 │ 30 │ 40 │ 50 │    │    │    │
+    └────┴────┴────┴────┴────┴────┴────┴────┘
+
+    The important idea is:
+
+    A vector manages a dynamically allocated region of memory for you.
+
+    You don't manually call malloc() and free() like you might in C.
+    */
+    //-----------------------------------------------------------------------------------------------
 
 
 }
