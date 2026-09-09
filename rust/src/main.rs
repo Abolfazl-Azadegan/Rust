@@ -882,5 +882,861 @@ fn main() {
     */
     //-----------------------------------------------------------------------------------------------
 
+    /*Vector elements must have the same type
+
+    This is just like an array.
+    This works:
+
+    let numbers = vec![10, 20, 30];
+
+    because all are integers. This doesn't:
+
+    let values = vec![10, true, 3.14]; // ❌
+
+    because these have different types:
+
+    10    → integer
+    true  → bool
+    3.14  → floating point
+
+    A Vec<T> has one T.
+
+    For example:
+
+    Vec<i32>
+    Vec<u8>
+    Vec<String>
+    Vec<bool>
+    */
+
+    /*Vector vs tuple vs array
+
+    At this point you can think about the three like this:
+
+    Tuple
+    let x = (10, true, 3.14);
+    fixed size
+    different types allowed
+
+    Array
+    let x = [10, 20, 30];
+    fixed size
+    same type required
+
+    Vector
+    let x = vec![10, 20, 30];
+    dynamic size
+    same type required
+    */
+
+
+    // This is another way to create a vector
+    // Vec should start with a capital V
+    // We should specify the type of the elements in vector when we define them with Vec, so the rust knows the type of the 
+    // elements which are going to store in the vector
+    let mut new_vec:Vec<i32> = Vec::new();
+    new_vec.push(10);
+    new_vec.push(20);
+    new_vec.push(30);
+    println!("-------------------------------------------------------------");
+    println!("This is the whole vector on new_vec: {:?}", new_vec);
+    println!("This is the first element of new_vec: {}", new_vec[0]);
+    println!("This is the second element of new_vec: {}", new_vec[1]);
+    println!("This is the third element of new_vec: {}", new_vec[2]);
+    println!("-------------------------------------------------------------");
+
+
+    let mut new_vec2:Vec<i32> = Vec::new();
+    new_vec2.push(100);
+    new_vec2.push(200);
+    new_vec2.push(300);
+    new_vec2.push(400);
+    println!("This is new_vec2 whole member: {:?}", new_vec2);
+
+
+    //This will reverse the new_vec2 vector
+    new_vec2.reverse();
+    println!("This is reversed new_vec2: {:?}", new_vec2);
+
+    println!("-------------------------------------------------------------");
+
+    let mut new_vec3 = Vec::<i32>::with_capacity(10);
+    println!("This is the length of the new_vec3: {}", new_vec3.capacity());
+    new_vec3.push(999);
+    println!("-------------------------------------------------------------");
+
+    // Another way to specify the type of elements in the vector.
+    // Here, i8 is specified directly in Vec::<i8>.
+    //One way is after the name of the variable.
+    //One way is after the Vec which we define the vector with it.
+    let mut new_vec4 = Vec::<i8>::new();
+    println!("This is the length of the new_vec4: {}", new_vec4.capacity());
+    new_vec4.push(1);
+    println!("This is the length of the new_vec4 after first push: {}", new_vec4.capacity());
+    new_vec4.push(2);
+    println!("This is the length of the new_vec4 after second push: {}", new_vec4.capacity());
+    println!("-------------------------------------------------------------");
+    println!("-------------------------------------------------------------");
+
+
+    /*Yes — your first part is correct, but there is one important mistake in your comments, and the second part is about the difference between length and capacity.
+
+    Your code:
+
+    let mut new_vec4 = Vec::<i8>::new();
+
+    println!("This is the length of the new_vec4: {}", new_vec4.capacity());
+
+    new_vec4.push(1);
+
+    println!("This is the length of the new_vec4 after first push: {}", new_vec4.capacity());
+
+    new_vec4.push(2);
+
+    println!("This is the length of the new_vec4 after second push: {}", new_vec4.capacity());
+    1. Vec::<i8>::new() is correct
+
+    This:
+
+    Vec::<i8>::new()
+
+    means:
+
+    Create a new empty Vec, and explicitly tell Rust that the elements inside it will be i8.
+
+    The syntax:
+
+    Vec::<i8>::new()
+        ^^^
+        type of elements
+
+    The ::<i8> part is called turbofish syntax.
+
+    So these are two different ways of telling Rust the element type:
+
+    let mut new_vec: Vec<i8> = Vec::new();
+
+    and:
+
+    let mut new_vec = Vec::<i8>::new();
+
+    Both mean essentially:
+
+    new_vec is a vector whose elements are i8.
+
+    2. The important mistake: you're printing capacity(), not length()
+
+    You wrote:
+
+    new_vec4.capacity()
+
+    But capacity() does not tell you how many elements are currently inside the vector.
+
+    For the number of elements, use:
+
+    new_vec4.len()
+
+    So:
+
+    println!("Length: {}", new_vec4.len());
+
+    And for the allocated capacity:
+
+    println!("Capacity: {}", new_vec4.capacity());
+
+    These are two different things.
+
+    3. What is the difference?
+
+    Imagine your vector looks like this:
+
+    new_vec4
+    │
+    ▼
+    ┌──────────────┐
+    │ pointer      │ ──────────────┐
+    │ length       │               │
+    │ capacity     │               │
+    └──────────────┘               │
+                                ▼
+                            ┌────┬────┬────┬────┬────┐
+                            │ 1  │ 2  │ ?  │ ?  │ ?  │
+                            └────┴────┴────┴────┴────┘
+
+    Suppose:
+
+    length   = 2
+    capacity = 5
+
+    This means:
+
+    There are 2 actual elements in the vector, but the allocated memory has room for 5 elements.
+
+    So:
+
+    length
+    ↓
+    ┌────┬────┐
+    │ 1  │ 2  │
+    └────┴────┘
+    ↑
+    2 elements actually exist
+
+
+    capacity
+    ↓
+    ┌────┬────┬────┬────┬────┐
+    │ 1  │ 2  │    │    │    │
+    └────┴────┴────┴────┴────┘
+    <--------->
+    room for 5 i8s
+
+    The empty spaces are allocated memory, but they don't represent elements that you've pushed.
+
+    4. Let's fix your program
+
+    Try this:
+
+    let mut new_vec4 = Vec::<i8>::new();
+
+    println!("Length: {}", new_vec4.len());
+    println!("Capacity: {}", new_vec4.capacity());
+
+    new_vec4.push(1);
+
+    println!("Length: {}", new_vec4.len());
+    println!("Capacity: {}", new_vec4.capacity());
+
+    new_vec4.push(2);
+
+    println!("Length: {}", new_vec4.len());
+    println!("Capacity: {}", new_vec4.capacity());
+
+    You might see something like:
+
+    Length: 0
+    Capacity: 0
+
+    Length: 1
+    Capacity: 4
+
+    Length: 2
+    Capacity: 4
+
+    The exact capacity is not guaranteed to be 4. Your Rust version/allocator/implementation may produce different values.
+
+    But the important thing is:
+
+    After creating:
+
+    length = 0
+    capacity = 0
+
+
+    After push(1):
+
+    length = 1
+    capacity = maybe 4
+
+
+    After push(2):
+
+    length = 2
+    capacity = maybe 4
+    5. Why doesn't capacity increase when you push 2?
+
+    This is actually the key idea behind Vec.
+
+    Suppose Rust initially allocates space for 4 i8 elements:
+
+    capacity = 4
+    length   = 0
+
+    ┌────┬────┬────┬────┐
+    │    │    │    │    │
+    └────┴────┴────┴────┘
+
+    Then:
+
+    new_vec4.push(1);
+
+    Now:
+
+    length   = 1
+    capacity = 4
+
+    ┌────┬────┬────┬────┐
+    │ 1  │    │    │    │
+    └────┴────┴────┴────┘
+
+    You have one element, but memory for four.
+
+    Then:
+
+    new_vec4.push(2);
+
+    Rust doesn't need to allocate anything new because there is already available space:
+
+    length   = 2
+    capacity = 4
+
+    ┌────┬────┬────┬────┐
+    │ 1  │ 2  │    │    │
+    └────┴────┴────┴────┘
+
+    So:
+
+    length changed:
+    0 → 1 → 2
+
+    capacity didn't need to change:
+    0 → 4 → 4
+
+    That's exactly what you are observing.
+
+    6. Why does Rust allocate extra space?
+
+    Because allocating memory every time you call push() would be inefficient.
+
+    Imagine Rust did this:
+
+    let mut v = Vec::<i8>::new();
+
+    v.push(1);
+    v.push(2);
+    v.push(3);
+    v.push(4);
+    v.push(5);
+
+    If every push() required a new allocation, it would conceptually have to do:
+
+    push(1)
+    allocate memory for 1
+
+    push(2)
+    allocate new memory for 2
+    copy 1
+    free old memory
+
+    push(3)
+    allocate new memory for 3
+    copy 1,2
+    free old memory
+
+    push(4)
+    allocate new memory for 4
+    copy 1,2,3
+    free old memory
+
+    ...
+
+    That would be expensive.
+
+    Instead, Vec generally allocates more space than immediately necessary.
+
+    For example:
+
+                        allocated memory
+                            │
+                            ▼
+                    ┌────┬────┬────┬────┐
+                    │ 1  │ 2  │    │    │
+                    └────┴────┴────┴────┘
+                    └──────┘
+                    actual elements
+
+                    └───────────────┘
+                        capacity
+
+    Then the next push() can use the already allocated space.
+
+    7. What happens when capacity is finally full?
+
+    Suppose:
+
+    length   = 4
+    capacity = 4
+
+    Memory:
+
+    ┌────┬────┬────┬────┐
+    │ 10 │ 20 │ 30 │ 40 │
+    └────┴────┴────┴────┘
+
+    Now you do:
+
+    v.push(50);
+
+    There is no free space.
+
+    Rust has to obtain a larger allocation.
+
+    Conceptually:
+
+    OLD:
+
+    ┌────┬────┬────┬────┐
+    │ 10 │ 20 │ 30 │ 40 │
+    └────┴────┴────┴────┘
+    capacity = 4
+
+    It obtains a larger memory area:
+
+    NEW:
+
+    ┌────┬────┬────┬────┬────┬────┬────┬────┐
+    │ 10 │ 20 │ 30 │ 40 │ 50 │    │    │    │
+    └────┴────┴────┴────┴────┴────┴────┴────┘
+    capacity = 8   ← example only
+
+    The old elements are moved/copied into the new allocation, and the old allocation is released.
+
+    Important: Rust's exact capacity-growth strategy is an implementation detail. Don't write code assuming that capacity always doubles.
+
+    8. So there are three different concepts you should keep separate
+
+    For a Vec, think about:
+
+    len()
+
+    How many elements are currently in the vector?
+
+    v.len()
+
+    Example:
+
+    ┌────┬────┬────┬────┐
+    │ 10 │ 20 │    │    │
+    └────┴────┴────┴────┘
+    ↑──────↑
+    len = 2
+    capacity()
+
+    How many elements can the current allocation hold before another allocation may be necessary?
+
+    v.capacity()
+
+    Example:
+
+    ┌────┬────┬────┬────┐
+    │ 10 │ 20 │    │    │
+    └────┴────┴────┴────┘
+    <------------>
+    capacity = 4
+    push()
+
+    Adds one element:
+
+    v.push(30);
+
+    So normally:
+
+    len increases by 1
+
+    but:
+
+    capacity only increases when necessary
+    One more correction to your comment
+
+    You wrote:
+
+    "This is other wat for specifying the type of variables inside the vector."
+
+    I'd phrase it more accurately as:
+
+    // Another way to specify the type of elements in the vector.
+    // Here, i8 is specified directly in Vec::<i8>.
+    let mut new_vec4 = Vec::<i8>::new();
+
+    Because i8 is the type of the elements, not really the "type of variables inside the vector."
+
+    And this:
+
+    println!("This is the length: {}", new_vec4.capacity());
+
+    should be:
+
+    println!("This is the capacity: {}", new_vec4.capacity());
+
+    If you want length:
+
+    println!("This is the length: {}", new_vec4.len());
+
+    The fact that you saw the number not change after push(1) and push(2) is actually a good observation—it means you're 
+    starting to see the difference between the vector's length and its allocated memory capacity.
+
+    */
+
+
+
+    let mut new_vec4 = Vec::<i8>::new();
+
+    println!("Length: {}", new_vec4.len());
+    println!("Capacity: {}", new_vec4.capacity());
+
+    new_vec4.push(1);
+
+    println!("Length: {}", new_vec4.len());
+    println!("Capacity: {}", new_vec4.capacity());
+
+    new_vec4.push(2);
+
+    println!("Length: {}", new_vec4.len());
+    println!("Capacity: {}", new_vec4.capacity());
+
+    println!("-------------------------------------------------------------");
+    println!("-------------------------------------------------------------");
+
+
+    let mut v = Vec::<i8>::new();
+
+    for i in 0..100 {
+        v.push(i);
+
+        println!(
+            "After push {:3}: length = {:3}, capacity = {:3}",
+            i + 1,
+            v.len(),
+            v.capacity()
+        );
+    }
+
+
+    /*Yes, your observation is correct, but the conclusion needs one important adjustment:
+
+    Rust does not guarantee how much extra capacity a Vec gets when it grows.
+
+    Your version happened to do this:
+
+    Vec::new()
+
+    Length     Capacity
+    0           0
+
+    push(1)
+
+    Length     Capacity
+    1           8
+
+    push(2)
+
+    Length     Capacity
+    2           8
+
+    That's perfectly valid Rust behavior.
+
+    Why 8?
+
+    Your vector is:
+
+    let mut v = Vec::<i8>::new();
+
+    An i8 occupies 1 byte.
+
+    So when Rust decides it needs to allocate space for the first element, your current Rust implementation/allocator 
+    chose enough memory for 8 i8 elements:
+
+    8 × 1 byte = 8 bytes
+
+    Conceptually:
+
+    capacity = 8
+
+    ┌────┬────┬────┬────┬────┬────┬────┬────┐
+    │    │    │    │    │    │    │    │    │
+    └────┴────┴────┴────┴────┴────┴────┴────┘
+    ↑
+    8 i8 elements
+
+    After:
+
+    v.push(1);
+
+    you have:
+
+    length = 1
+    capacity = 8
+
+    ┌────┬────┬────┬────┬────┬────┬────┬────┐
+    │  1 │    │    │    │    │    │    │    │
+    └────┴────┴────┴────┴────┴────┴────┴────┘
+
+    After:
+
+    v.push(2);
+
+    you have:
+
+    length = 2
+    capacity = 8
+
+    ┌────┬────┬────┬────┬────┬────┬────┬────┐
+    │  1 │  2 │    │    │    │    │    │    │
+    └────┴────┴────┴────┴────┴────┴────┴────┘
+
+    Nothing needs to be allocated for 2, because there is already room.
+
+    How can you see how YOUR Rust version grows it?
+
+    The easiest way is to repeatedly push() elements and print both len() and capacity().
+
+    Try this:
+
+    fn main() {
+        let mut v = Vec::<i8>::new();
+
+        for i in 0..100 {
+            v.push(i);
+
+            println!(
+                "After push {:3}: length = {:3}, capacity = {:3}",
+                i + 1,
+                v.len(),
+                v.capacity()
+            );
+        }
+    }
+
+    You may get something similar to:
+
+    After push   1: length =   1, capacity =   8
+    After push   2: length =   2, capacity =   8
+    After push   3: length =   3, capacity =   8
+    After push   4: length =   4, capacity =   8
+    After push   5: length =   5, capacity =   8
+    After push   6: length =   6, capacity =   8
+    After push   7: length =   7, capacity =   8
+    After push   8: length =   8, capacity =   8
+    After push   9: length =   9, capacity =  16
+    ...
+
+    Then you'll probably see another jump:
+
+    capacity = 8
+        ↓
+    capacity = 16
+        ↓
+    capacity = 32
+        ↓
+    capacity = 64
+        ↓
+    ...
+
+    But do not assume those exact numbers are guaranteed.
+
+    Now to your more important question
+
+    You said:
+
+    "I think it is weird that in every system rust will allocate different space for vectors and it will make it 
+    uncertain in different situations and systems?"
+
+    This is a very good systems-programming question.
+
+    And the answer is:
+
+    Yes, the exact capacity can be different. But no, this does not make Rust programs uncertain or unreliable.
+
+    The important distinction is:
+
+    Rust guarantees the behavior you can depend on.
+
+    For example, Rust guarantees that:
+
+    let mut v = Vec::<i8>::new();
+
+    v.push(10);
+    v.push(20);
+
+    will give you a vector containing:
+
+    10
+    20
+
+    and:
+
+    v.len()
+
+    will return:
+
+    2
+
+    But Rust does not promise:
+
+    capacity == 8
+
+    after the first push.
+
+    So your program should not depend on that.
+
+    Think about capacity as an implementation detail
+
+    Suppose you write:
+
+    let mut v = Vec::<i8>::new();
+
+    v.push(10);
+    v.push(20);
+    v.push(30);
+
+    Your program cares about:
+
+    Elements:
+    10
+    20
+    30
+
+    Length:
+    3
+
+    It generally doesn't care whether Rust internally allocated:
+
+    capacity = 4
+
+    or:
+
+    capacity = 8
+
+    or:
+
+    capacity = 16
+
+    All three can correctly represent your vector.
+
+    Why doesn't Rust specify the growth strategy?
+
+    Because Rust wants the implementation to have freedom to improve its memory-management strategy.
+
+    Imagine Rust developers discover a better strategy for a particular platform.
+
+    If Rust had promised:
+
+    "Every Vec always doubles its capacity."
+
+    then changing that behavior could break programs that incorrectly relied on it.
+
+    Instead, Rust essentially says:
+
+    "I guarantee what Vec does as a collection, but I don't promise exactly how much spare memory it allocates."
+
+    That gives the implementation freedom.
+
+    This is extremely common in systems programming.
+
+    But you CAN control capacity yourself
+
+    This is where it gets interesting.
+
+    Suppose you know beforehand that you're going to put approximately 1,000 elements into a vector.
+
+    You can write:
+
+    let mut v = Vec::<i8>::with_capacity(1000);
+
+    Now you're explicitly asking Rust to allocate capacity for at least 1,000 elements.
+
+    You can check it:
+
+    println!("Length: {}", v.len());
+    println!("Capacity: {}", v.capacity());
+
+    You might get:
+
+    Length: 0
+    Capacity: 1000
+
+    Then:
+
+    v.push(10);
+
+    gives:
+
+    Length: 1
+    Capacity: 1000
+
+    Then:
+
+    v.push(20);
+
+    gives:
+
+    Length: 2
+    Capacity: 1000
+
+    So you're telling Rust:
+
+    "I expect to need this much space. Please prepare it."
+
+    This can be useful for performance optimization, because it can avoid repeated reallocations as the vector grows.
+
+    There is another very important concept here
+
+    Don't confuse:
+
+    Vec::<i8>::new()
+
+    with:
+
+    Vec::<i8>::with_capacity(1000)
+
+    The first says:
+
+    "Give me an empty vector. I don't currently need any elements."
+
+    The second says:
+
+    "Give me an empty vector, but prepare storage for at least 1,000 elements."
+
+    So:
+
+    new()
+
+    Length:   0
+    Capacity: 0 initially
+
+    versus:
+
+    with_capacity(1000)
+
+    Length:   0
+    Capacity: 1000
+
+    Notice that both vectors have zero elements.
+
+    The difference is the amount of memory prepared for future elements.
+
+    And one final subtle point
+
+    You said:
+
+    "in every system Rust will allocate different space"
+
+    It's better to say:
+
+    The exact capacity growth is not guaranteed to be the same across all Rust versions, platforms, allocators, or 
+    implementation details.
+
+    That doesn't mean every computer necessarily gives you a different result.
+
+    For example, many systems might give:
+
+    8 → 16 → 32 → 64
+
+    But Rust deliberately does not make that sequence something your program should rely upon.
+
+    So for normal programming:
+
+    len()       ← information you can depend on
+    capacity()  ← useful information, but exact growth is implementation-dependent
+
+    And this distinction is going to become very important when we get to memory allocation, pointers, ownership, 
+    borrowing, and reallocation, because when a Vec runs out of capacity, its underlying memory may have to move to a 
+    different location.
+    */
+
+
+
+
+
 
 }
