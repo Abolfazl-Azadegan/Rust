@@ -4102,6 +4102,225 @@ fn main() {
         println!("The variable is less than 0.");
     }
     
+
+    let mut num_loop= 0;
+    'counter: loop{
+        println!("num_loop = {}", num_loop);
+        let mut decrease = 5;
+        loop {
+            println!("Decrease is equal to = {}", decrease);
+            if decrease == 4 {
+                break; //This will break the loop. the closest loop
+            }
+            if num_loop == 2{
+                break 'counter;
+            }
+            decrease -= 1;
+
+        }
+        num_loop += 1;
+
+    }
+
+    /************************************************************************************************************
+    This code is showing you two nested loops and, most importantly, loop labels. The 'counter part is a label that gives a name to the outer loop so that the inner loop can tell Rust:
+
+    "Don't just break me. Break that specific outer loop."
+
+    Let's go through it from the beginning.
+
+    1. First, look at the structure
+
+    Your code is:
+
+    let mut num_loop = 0;
+
+    'counter: loop {
+        println!("num_loop = {}", num_loop);
+
+        let mut decrease = 5;
+
+        loop {
+            println!("Decrease is equal to = {}", decrease);
+
+            if decrease == 4 {
+                break;
+            }
+
+            if num_loop == 2 {
+                break 'counter;
+            }
+
+            decrease -= 1;
+        }
+
+        num_loop += 1;
+    }
+
+    There are two loops here.
+
+    The outer loop:
+
+    'counter: loop {
+        ...
+    }
+
+    and the inner loop:
+
+    loop {
+        ...
+    }
+
+    The important thing is that they are nested:
+
+    OUTER LOOP
+    'counter: loop
+    │
+    │   INNER LOOP
+    │   loop
+    │   │
+    │   └── ...
+    │
+    └── ...
+    2. What is 'counter?
+
+    This:
+
+    'counter:
+
+    is a loop label.
+
+    The apostrophe ' is part of Rust's syntax for a label.
+
+    So:
+
+    'counter: loop {
+
+    means:
+
+    Give the following loop the label named counter.
+
+    It is similar to giving something a name so you can refer to it later.
+
+    The syntax is:
+
+    'label_name: loop
+
+    For example:
+
+    'outer: loop {
+        ...
+    }
+
+    Here the label is:
+
+    'outer
+
+    You could call it almost anything:
+
+    'counter:
+    'outer:
+    'main_loop:
+    'my_loop:
+
+    The name itself has no special meaning.
+
+    So in your code:
+
+    'counter: loop {
+
+    counter isn't a special Rust keyword.
+
+    You chose that name.
+
+    3. Why do we need a label?
+
+    Because you have two loops.
+
+    Consider this:
+
+    loop {             // OUTER
+
+        loop {         // INNER
+
+            break;
+
+        }
+
+    }
+
+    What does:
+
+    break;
+
+    do?
+
+    It breaks the closest loop.
+
+    In this case, the closest loop is the inner loop.
+
+    So:
+
+    loop {                 // OUTER
+                        │
+        loop {             │ // INNER
+            break; ────────┘
+        }
+
+    }
+
+    The inner loop stops.
+
+    But the outer loop continues.
+
+    That's exactly what this comment in your code says:
+
+    if decrease == 4 {
+        break; // This will break the loop. the closest loop
+    }
+
+    That is correct.
+
+    4. But what if we want to break the OUTER loop?
+
+    This is where:
+
+    'counter
+
+    becomes useful.
+
+    You can write:
+
+    break 'counter;
+
+    This means:
+
+    Break the loop whose label is 'counter.
+
+    So:
+
+    'counter: loop {       // ← this loop has the name 'counter
+
+        loop {              // ← we're currently inside this loop
+
+            break 'counter; // ← break the OUTER loop
+
+        }
+
+    }
+
+    The inner loop doesn't just stop.
+
+    The entire outer loop stops.
+    */
+
+
+
+
+
+
+
+
 }
 
 
