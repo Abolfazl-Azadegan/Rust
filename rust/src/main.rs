@@ -3522,7 +3522,7 @@ fn main() {
     */
 
 
-    
+
     /************************************************************************************************************
     Yes, exactly. You have the right idea. The important thing is to distinguish characters from the bytes that represent those characters in UTF-8.
 
@@ -4022,8 +4022,39 @@ fn main() {
 
 
 
+    let string1  = "EFE"; // string1 is a &str that refers to the string literal "EFE",
+                                // whose data is embedded in the program's read-only memory.
+    let string2 = string1.to_string(); //This turns the string1 into string 
+                                               // string2 owns its string data.
+    let string3 = &string2[..]; // string3 is a &str that refers to all of the string data owned by string2.
+
+    println!("This is string1: {}", string1);
+    println!("This is string2: {}", string2);
+    println!("This is string3: {}", string3);
+    println!("This is the result of comparision: {}", "One".to_lowercase() == "one");
+
+
+    //-----------------------------------------------------------------------------------------------
+
+    //We can use below notation to enter string characters with their Hexadecimal codes in UTF-8.
+    //We can use these Hexadecimal values to enter special characters like € or 🚀;
+    let literal_string = "\x52\x75\x73\x74\u{20AC}\u{1F680}";
+    println!("This is literal_string value: {}", literal_string);
+
+
+    //-----------------------------------------------------------------------------------------------
+
+    //For functions name Rust uses snake casing which as an example we can see one in below line:
+    //In snake casing all the letters are in lowercase and we separate the words with _
+    //this_is_snake_casing
 
 
 
+
+
+
+
+
+    
 
 }
