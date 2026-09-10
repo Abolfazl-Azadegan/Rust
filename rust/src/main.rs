@@ -4103,6 +4103,11 @@ fn main() {
     }
     
 
+    println!("-------------------------------------------------------------");
+    println!("-------------------------------------------------------------");
+
+
+
     let mut num_loop= 0;
     'counter: loop{
         println!("num_loop = {}", num_loop);
@@ -4315,10 +4320,26 @@ fn main() {
     */
 
 
+    println!("-------------------------------------------------------------");
+    println!("-------------------------------------------------------------");
+
+
+    let mut while_variable = 0;
+    while while_variable < 6 {
+        println!("while_variable is: {}", while_variable);
+        while_variable +=1;
+    }
+
+
+    println!("-------------------------------------------------------------");
+    println!("-------------------------------------------------------------");
 
 
 
-
+    let vec_in_for_loop:Vec<i8> = (0..10).collect();
+    for element in vec_in_for_loop{
+        println!("The current element is the Vec_in_for_loop is: {}", element);
+    }
 
 
 }
