@@ -4078,7 +4078,40 @@ fn main() {
     println!("The flag is: {}", multiple_return_value(false));
 
 
+    println!("-------------------------------------------------------------");
+    println!("-------------------------------------------------------------");
+
+
+    //-----------------------------------------------------------------------------------------------
+
+    let variable1= 1;
+    if variable1 >=1{
+        println!("True");
+    }
+    else{
+        println!("False");
+    }
+
+
+    let variable2 = 0;
+    if variable2 > 0{
+        println!("The variable2 is greater that 0.");
+    }else if variable2 == 0 {
+        println!("The variable2 is 0.");
+    }else {
+        println!("The variable is less than 0.");
+    }
+    
 }
+
+
+//-----------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------
+
+
+
+
 
 //In paranteses we define how we should pass the variables and values to the fucntion
 //After -> we define the type of the variable that the function should return.
@@ -4092,4 +4125,8 @@ fn multiple_return_value (flag: bool) -> bool{
         //false in below line is what the function will return if the variable that we have passed to the function is false
         false
     }
+
+    //-----------------------------------------------------------------------------------------------
+
+
 }
