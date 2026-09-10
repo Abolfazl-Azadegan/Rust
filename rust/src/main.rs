@@ -1,4 +1,23 @@
 
+
+    //This is a function which we ues to print a fixed text
+    fn pn(){
+        println!("This is print in function");
+    }
+
+
+    //This is a function which we ues to print whatever message we want
+    //We pass the text we want as string slice to the function
+    //We do not need to pass the string itself. we pass the string address as slice
+    fn pn2(message_text: &str){
+        println!("This is what you said to print: {}", message_text);
+    }
+
+
+
+
+
+
 fn main() {
     println!("Hello, world!");
 
@@ -4048,13 +4067,29 @@ fn main() {
     //In snake casing all the letters are in lowercase and we separate the words with _
     //this_is_snake_casing
 
+    println!("-------------------------------------------------------------");
+    println!("-------------------------------------------------------------");
+
+    pn();
+    let message = "Hellow World!!".to_string();
+    pn2(&message);
+
+    println!("The flag is: {}", multiple_return_value(true));
+    println!("The flag is: {}", multiple_return_value(false));
 
 
+}
 
+//In paranteses we define how we should pass the variables and values to the fucntion
+//After -> we define the type of the variable that the function should return.
+fn multiple_return_value (flag: bool) -> bool{
+    if flag==true{
 
+        //true in below line is what the function will return if the variable that we have passed to the function is true
+        true
+    }else{
 
-
-
-    
-
+        //false in below line is what the function will return if the variable that we have passed to the function is false
+        false
+    }
 }
