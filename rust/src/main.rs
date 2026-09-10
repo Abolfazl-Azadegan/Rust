@@ -5,15 +5,20 @@ fn main() {
     let x = 5;
     println!("The value of X is {}", x);
 
-    /*This will generate error, because the x variable in immutable which is defined by let and we can not change its value
+
+
+    /************************************************************************************************************
+    This will generate error, because the x variable in immutable which is defined by let and we can not change its value
     later in the code.
     
     // x = 6;
     // println!("The value of X is {}", x);
-
     */
 
-    /* to solve this issue we can make the x mutable by adding mut to its definition with let. like below code.
+
+
+    /************************************************************************************************************
+    to solve this issue we can make the x mutable by adding mut to its definition with let. like below code.
 
     // let mut x = 5;
     // println!("The value of X is {}", x);
@@ -61,7 +66,10 @@ fn main() {
     println!("u64= {}",b);
     println!("u128= {}",c);
 
-    /*This part will generate error because we are setting signed numbers (Negative) to unsigned numbers.
+
+
+    /************************************************************************************************************
+    This part will generate error because we are setting signed numbers (Negative) to unsigned numbers.
     y= -100; //Signed 8 bit integer
     z= -200; //Signed 16 bit integer
     a= -300; //Signed 32 bit integer
@@ -74,7 +82,10 @@ fn main() {
     println!("i128= {}",c);
     */
 
-    /* Note: Decimal and hexadecimal are not different data types in Rust. They are different ways of writing integer values 
+
+
+    /************************************************************************************************************
+    Note: Decimal and hexadecimal are not different data types in Rust. They are different ways of writing integer values 
     (number literals). 
     For example, these all represent the same integer value:
 
@@ -86,7 +97,10 @@ fn main() {
     All four have the value 42.
     */
 
-    /* Notes: 1. Rust's main data types
+
+
+    /************************************************************************************************************
+    Notes: 1. Rust's main data types
     Rust has four major groups of types you'll encounter initially:
     Rust types
     │
@@ -111,7 +125,11 @@ fn main() {
         └── ...
     */
 
-    /*Integer types
+
+
+
+    /************************************************************************************************************
+    Integer types
 
     Integers are whole numbers:
     ... -3, -2, -1, 0, 1, 2, 3 ...
@@ -137,7 +155,10 @@ fn main() {
             i128	128	    -2¹²⁷ → 2¹²⁷−1
     */
 
-    /*Unsigned integers
+
+
+    /************************************************************************************************************
+    Unsigned integers
 
     Unsigned means:
     No negative values.
@@ -167,7 +188,10 @@ fn main() {
             u128	128	    0 → 2¹²⁸−1
     */
 
-    /*usize and isize
+
+
+    /************************************************************************************************************
+    usize and isize
 
     These are special.
     usize is an unsigned integer whose size depends on the architecture.
@@ -188,7 +212,10 @@ fn main() {
     The index is usize.
     */
 
-    /*Floating-point types
+
+
+    /************************************************************************************************************
+    Floating-point types
 
     Rust has two floating-point types:
             f32
@@ -203,7 +230,10 @@ fn main() {
     f64 is the usual default when Rust needs to infer a floating-point type.
     */
 
-    /*Boolean
+
+
+    /************************************************************************************************************
+    Boolean
 
     Rust has:
             bool
@@ -218,7 +248,10 @@ fn main() {
         }
     */
 
-    /*Character
+
+
+    /************************************************************************************************************
+    Character
 
     Rust has:
     char
@@ -239,16 +272,25 @@ fn main() {
 
 
 
-    /*This will generate warning for use because the unsed_variable is defined but is not used.*/
+    /************************************************************************************************************
+    This will generate warning for use because the unsed_variable is defined but is not used.*/
     //let unsed_variable:i8 = 1000;
-    /*We can solve this issue by adding _ to the variable name like below code.*/
+
+
+    /************************************************************************************************************
+    We can solve this issue by adding _ to the variable name like below code.*/
     let _unsed_variable:i8 = 120;
 
-    /*This will create a character variable*/
+
+    /************************************************************************************************************
+    This will create a character variable*/
     let _character = 'A';
 
     let _byte = b'A';
-    /*when you put b before the character: b'A'you are telling Rust:
+
+
+    /************************************************************************************************************
+    when you put b before the character: b'A'you are telling Rust:
     Give me the ASCII/byte value of this character as a u8.
     Therefore:
         let byte = b'A';
@@ -258,14 +300,17 @@ fn main() {
     └── type: u8
         value: 65
     */
-    /*Compare A and b'A'
+
+    /************************************************************************************************************
+    Compare A and b'A'
     This distinction is extremely important:
     'A'is char
     while:
     b'A'is u8
     */
 
-    /*Because byte is a u8. You can also print it as hexadecimal:*/
+    /************************************************************************************************************
+    Because byte is a u8. You can also print it as hexadecimal:*/
 
     let byte = b'A';
     println!("The Hex format of the varibale byte is: {:x}", byte);
@@ -278,7 +323,10 @@ fn main() {
 
     //-----------------------------------------------------------------------------------------------
 
-    /*Tuple
+
+
+    /************************************************************************************************************
+    Tuple
 
     A tuple lets you put values of different types together.
     let person = ("EFE", 34, true);
@@ -298,7 +346,10 @@ fn main() {
     true
     */
 
-    /*Tuples have a fixed size in Rust.
+
+
+    /************************************************************************************************************
+    Tuples have a fixed size in Rust.
 
     That means once you create a tuple, the number of elements cannot change.
     For example:
@@ -314,7 +365,10 @@ fn main() {
     You cannot add a fourth element to it later.
     */
 
-    /* The type of a tuple includes its size
+
+
+    /************************************************************************************************************
+    The type of a tuple includes its size
 
     This is important.
 
@@ -335,7 +389,10 @@ fn main() {
     So unlike something such as a dynamically growing collection, a tuple's size is part of its type.
     */
 
-    /*Tuples can have different types for each element, For example:
+
+
+    /************************************************************************************************************
+    Tuples can have different types for each element, For example:
 
     let data = (10, 3.14, true, 'A');
 
@@ -381,6 +438,7 @@ fn main() {
     println!("The user age is: {}", new_tup.2);
     println!("The user salary annually is: {}", new_tup.3);
 
+
     /*Below method will assign tuple members to variables:*/
     let (x1, x2, x3, x4) = new_tup;
 
@@ -392,7 +450,10 @@ fn main() {
 
     //-----------------------------------------------------------------------------------------------
 
-    /*Array
+    
+
+    /************************************************************************************************************
+    Array
     An array contains multiple values of the same type and has a fixed size.
     let numbers = [10, 20, 30, 40];
     This is essentially:
@@ -409,7 +470,10 @@ fn main() {
     4   → number of elements
     */
 
-    /*Arrays in Rust also have a fixed size. For example:
+
+
+    /************************************************************************************************************
+    Arrays in Rust also have a fixed size. For example:
 
     let numbers = [10, 20, 30, 40];
 
@@ -447,7 +511,11 @@ fn main() {
     println!("The first element of array_2 with index 2 is: {}",array_2[2]);
     println!("The first element of array_2 with index 3 is: {}",array_2[3]);
 
-    /*This is wrong because the way we have defined the arrays made them immutable. To make the mutable we should use mut 
+
+
+
+    /************************************************************************************************************
+    This is wrong because the way we have defined the arrays made them immutable. To make the mutable we should use mut 
     before the variable definition.
 
     let array_2[0] = 100;
@@ -468,7 +536,10 @@ fn main() {
     println!("The first element of array_3 with index 3 is: {}",array_3[3]);
 
 
-    /*Suppose you have:
+
+
+    /************************************************************************************************************
+    Suppose you have:
 
     fn main() {
         let numbers = [10, 20, 30];
@@ -515,7 +586,9 @@ fn main() {
                 program stops
     */
 
-    /*Why does Rust panic instead of just accessing memory?
+
+    /************************************************************************************************************
+    Why does Rust panic instead of just accessing memory?
 
     This is particularly important if you're coming from C/C++.
     In C, you might do:
@@ -563,7 +636,9 @@ fn main() {
     panic!("Something went wrong!");
     */
 
-    /*You can explicitly cause a panic
+
+    /************************************************************************************************************
+    You can explicitly cause a panic
 
     Rust provides a macro called panic!:
 
@@ -583,7 +658,11 @@ fn main() {
     So an out-of-bounds array access is essentially a situation where Rust internally triggers a panic.
     */
 
-    /*But sometimes you don't want a panic
+
+
+
+    /************************************************************************************************************
+    But sometimes you don't want a panic
 
     Suppose you're not sure whether an index is valid.
     You can check it yourself:
@@ -624,7 +703,10 @@ fn main() {
     You'll eventually learn that Option<T> is one of Rust's most important types.
     */
 
-    /*The big picture
+
+
+    /************************************************************************************************************
+    The big picture
 
     There are two different approaches:
 
@@ -660,7 +742,10 @@ fn main() {
 
     //-----------------------------------------------------------------------------------------------
 
-    /*Vector
+
+    
+    /************************************************************************************************************
+    Vector
     A vector in Rust is a collection that stores multiple values of the same type, but unlike an array, 
     its size can change at runtime.
 
@@ -754,7 +839,10 @@ fn main() {
 
     //Output: 20
 
-    /* The indices are:
+
+
+    /************************************************************************************************************ 
+    The indices are:
 
     ┌────┬────┬────┐
     │ 10 │ 20 │ 30 │
@@ -776,7 +864,11 @@ fn main() {
     let value = numbers_4.get(10);
     println!("This is value with get(10): {:?}", value);
 
-    /* This returns: None
+
+
+
+    /************************************************************************************************************
+    This returns: None
     rather than panicking.
     For a valid index: */
 
@@ -786,7 +878,11 @@ fn main() {
     //This is where the Option type we discussed earlier becomes very useful.
 
     //-----------------------------------------------------------------------------------------------
-    /*
+
+
+
+
+    /************************************************************************************************************
     How does a vector actually work in memory?
 
     This is particularly important for you because you're interested in low-level/system programming.
@@ -882,7 +978,11 @@ fn main() {
     */
     //-----------------------------------------------------------------------------------------------
 
-    /*Vector elements must have the same type
+
+
+
+    /************************************************************************************************************
+    Vector elements must have the same type
 
     This is just like an array.
     This works:
@@ -909,7 +1009,10 @@ fn main() {
     Vec<bool>
     */
 
-    /*Vector vs tuple vs array
+
+
+    /************************************************************************************************************
+    Vector vs tuple vs array
 
     At this point you can think about the three like this:
 
@@ -979,7 +1082,9 @@ fn main() {
     println!("-------------------------------------------------------------");
 
 
-    /*Yes — your first part is correct, but there is one important mistake in your comments, and the second 
+
+    /************************************************************************************************************
+    Yes — your first part is correct, but there is one important mistake in your comments, and the second 
     part is about the difference between length and capacity.
 
     Your code:
@@ -1403,7 +1508,9 @@ fn main() {
     }
 
 
-    /*Yes, your observation is correct, but the conclusion needs one important adjustment:
+
+    /************************************************************************************************************
+    Yes, your observation is correct, but the conclusion needs one important adjustment:
 
     Rust does not guarantee how much extra capacity a Vec gets when it grows.
 
@@ -1736,7 +1843,10 @@ fn main() {
     */
 
 
-    /*The reason is that an empty Vec initially has no allocated element buffer at all. When you perform the first push(), 
+
+
+    /************************************************************************************************************
+    The reason is that an empty Vec initially has no allocated element buffer at all. When you perform the first push(), 
     Rust has to allocate memory, and your current implementation chooses a capacity of 8.
 
     Let's go through your code one line at a time.
@@ -1951,7 +2061,10 @@ fn main() {
     let sv2: &[i32] = &vector_from_iterator[2..4];
     println!("This is sv2 slice which points to the index 2 to 4 of vector_from_iterator: {:?}", sv2);
 
-    /*A slice in Rust is a way to refer to part of a collection without owning that collection.
+
+
+    /************************************************************************************************************
+    A slice in Rust is a way to refer to part of a collection without owning that collection.
 
     Since you're learning Vec right now, the easiest way to understand slices is to start with a vector.
 
@@ -2373,6 +2486,1543 @@ fn main() {
     println!("This is name String variable: {}", name);
     println!("This is course String variable: {}", course);
     println!("This is new_name String variable: {}", new_name);
+
+
+
+
+    /************************************************************************************************************
+    A slice in Rust is a way to refer to part of a collection without owning that collection.
+
+    Since you're learning Vec right now, the easiest way to understand slices is to start with a vector.
+
+    Suppose we have:
+
+    let numbers = vec![10, 20, 30, 40, 50];
+
+    The vector contains five elements:
+
+    index:    0    1    2    3    4
+            ↓    ↓    ↓    ↓    ↓
+            ┌────┬────┬────┬────┬────┐
+            │ 10 │ 20 │ 30 │ 40 │ 50 │
+            └────┴────┴────┴────┴────┘
+
+    Now imagine that we only want to work with:
+
+    20, 30, 40
+
+    We can create a slice:
+
+    let part = &numbers[1..4];
+
+    Now:
+
+    numbers:
+    ┌────┬────┬────┬────┬────┐
+    │ 10 │ 20 │ 30 │ 40 │ 50 │
+    └────┴────┴────┴────┴────┘
+        └──────────────┘
+            slice
+
+    part refers to elements at indexes:
+
+    1, 2, 3
+
+    so:
+
+    println!("{:?}", part);
+
+    prints:
+
+    [20, 30, 40]
+    The important part: what does & mean?
+
+    This is where slices become connected to ownership and borrowing.
+
+    We wrote:
+
+    let part = &numbers[1..4];
+
+    There are actually two concepts here:
+
+    [1..4]
+
+    means:
+
+    Select the range from index 1 up to, but NOT including, index 4.
+
+    And:
+
+    &
+
+    means:
+
+    Borrow/refer to this data rather than taking ownership of it.
+
+    So:
+
+    &numbers[1..4]
+
+    means roughly:
+
+    "Give me a borrowed view of this portion of numbers."
+
+    The slice does not create a new vector.
+
+    That's extremely important.
+
+    Slice vs Vec
+
+    Consider:
+
+    let numbers = vec![10, 20, 30, 40, 50];
+
+    let part = &numbers[1..4];
+
+    You now have:
+
+    numbers
+    │
+    ▼
+    ┌────┬────┬────┬────┬────┐
+    │ 10 │ 20 │ 30 │ 40 │ 50 │
+    └────┴────┴────┴────┴────┘
+        ▲         ▲
+        │         │
+        └─────────┘
+            part
+
+    part doesn't contain another copy of:
+
+    20, 30, 40
+
+    Instead, it refers to the existing memory.
+
+    Conceptually:
+
+    numbers
+    │
+    │ owns
+    ▼
+    ┌────┬────┬────┬────┬────┐
+    │ 10 │ 20 │ 30 │ 40 │ 50 │
+    └────┴────┴────┴────┴────┘
+        ▲         ▲
+        │         │
+        └─────────┘
+            borrowed
+            slice
+
+    This is one of the reasons slices are very useful.
+
+    What is the type of a slice?
+
+    For a vector of i32:
+
+    let numbers = vec![10, 20, 30, 40, 50];
+
+    let part = &numbers[1..4];
+
+    the type of part is:
+
+    &i32
+
+    No — careful! That's not correct.
+
+    The type is:
+
+    &[i32]
+
+    Read this as:
+
+    a reference (&) to a slice ([i32]) of i32 values.
+
+    So:
+
+    &i32
+    │
+    └── reference to ONE i32
+
+
+    &[i32]
+    │
+    └── reference to a SLICE of i32 values
+
+    For example:
+
+    let x = &numbers[2];
+
+    is a reference to one element:
+
+    &i32
+
+    while:
+
+    let x = &numbers[1..4];
+
+    is a reference to multiple elements:
+
+    &[i32]
+    Why does [1..4] contain 3 elements?
+
+    Rust uses the convention:
+
+    start..end
+
+    where start is included and end is excluded.
+
+    So:
+
+    numbers[1..4]
+
+    means:
+
+    index 1
+    index 2
+    index 3
+
+    but not index 4.
+
+    Therefore:
+
+    numbers:
+
+    index       0    1    2    3    4
+                ↓    ↓    ↓    ↓    ↓
+            10   20   30   40   50
+                    └───────┘
+                    1..4
+
+    The slice contains:
+
+    20, 30, 40
+    You can also omit the beginning or end
+
+    For example:
+
+    &numbers[..3]
+
+    means:
+
+    From the beginning through index 2.
+
+    So:
+
+    [10, 20, 30]
+
+    Similarly:
+
+    &numbers[2..]
+
+    means:
+
+    From index 2 until the end.
+
+    So:
+
+    [30, 40, 50]
+
+    And:
+
+    &numbers[..]
+
+    means:
+
+    The entire vector as a slice.
+
+    So:
+
+    let all = &numbers[..];
+
+    gives you a &[i32] referring to the entire vector.
+
+    Why not just use the Vec directly?
+
+    This is one of the biggest reasons slices exist.
+
+    Imagine you write a function that needs to process some numbers.
+
+    You could write:
+
+    fn print_numbers(numbers: &Vec<i32>) {
+        println!("{:?}", numbers);
+    }
+
+    But this function specifically expects a Vec.
+
+    A slice is more general:
+
+    fn print_numbers(numbers: &[i32]) {
+        println!("{:?}", numbers);
+    }
+
+    Now the function doesn't care whether the data came from a Vec, an array, or another slice.
+
+    For example:
+
+    let numbers = vec![10, 20, 30, 40];
+
+    print_numbers(&numbers);
+
+    You can pass the vector as a slice.
+
+    You can also have an array:
+
+    let numbers = [10, 20, 30, 40];
+
+    print_numbers(&numbers);
+
+    Both can work because both can be viewed as a slice of i32.
+
+    This is the deeper idea
+
+    A slice is basically a view into a contiguous sequence of elements.
+
+    It doesn't own those elements.
+
+    Think of a book.
+
+    Suppose you own a 500-page book.
+
+    The book is like the Vec:
+
+    Vec
+    ┌───────────────────────────┐
+    │ Page 1 ... Page 500       │
+    └───────────────────────────┘
+
+    You ask someone:
+
+    "Give me pages 100–150."
+
+    They don't need to photocopy those 50 pages.
+
+    They can simply give you a reference saying:
+
+    "Look at pages 100 through 150 of that book."
+
+    That's conceptually what a slice does.
+
+    The original collection owns the data.
+
+    The slice borrows a portion of it.
+
+    And this connects directly to the memory discussion we just had
+
+    Remember that we said a Vec conceptually contains:
+
+    Vec
+    ┌────────────────┐
+    │ pointer        │ ──────┐
+    │ length         │       │
+    │ capacity       │       │
+    └────────────────┘       │
+                            ▼
+                        ┌────┬────┬────┬────┬────┐
+                        │ 10 │ 20 │ 30 │ 40 │ 50 │
+                        └────┴────┴────┴────┴────┘
+
+    A slice doesn't need to own this allocation.
+
+    It can essentially say:
+
+    "I start here"
+        +
+    "and contain this many elements"
+
+    Conceptually:
+
+    Vec
+                        ┌────┬────┬────┬────┬────┐
+                        │ 10 │ 20 │ 30 │ 40 │ 50 │
+                        └────┴────┴────┴────┴────┘
+                            ▲              ▲
+                            │              │
+                            │              │
+                        start          length
+                            │
+                            └──────────────┘
+                                slice
+
+    A slice does not have a capacity in the same sense that a Vec does.
+
+    That's because the slice doesn't manage the allocation.
+
+    The Vec owns and manages the underlying memory.
+
+    The slice just gives you a view into part of it.
+
+    One important distinction to remember
+
+    You will encounter these three things constantly:
+
+    Vec<i32>
+
+    A vector that owns its data and can grow/shrink.
+
+    [i32; 5]
+
+    An array containing exactly 5 i32s.
+
+    And:
+
+    &[i32]
+
+    A borrowed slice of i32s.
+
+    A very useful mental model is:
+
+    Vec<i32>
+    │
+    │ can create a view of
+    ▼
+    &[i32]
+
+    For example:
+
+    let numbers = vec![10, 20, 30, 40, 50];
+
+    let slice = &numbers[1..4];
+
+    Here:
+
+    numbers
+    ↓
+    Vec<i32>
+    owns the data
+        │
+        │ borrow
+        ▼
+    slice
+    ↓
+    &[i32]
+    doesn't own the data
+
+    This concept becomes very important when we get to ownership and borrowing, because slices are one of the best examples 
+    of why Rust needs its ownership system in the first place.
+    */
+
+
+
+    /************************************************************************************************************
+    The problem is simply capitalization.
+
+    Your string is:
+
+    let name = String::from("Tylor");
+
+    Notice that the actual value is:
+
+    Tylor
+    ^
+    uppercase T
+
+    But in replace() you are searching for:
+
+    "tylor"
+
+    which is:
+
+    tylor
+    ^
+    lowercase t
+
+    Rust's string replacement is case-sensitive.
+
+    So:
+
+    let new_name = name.replace("tylor", "EFE");
+
+    means:
+
+    Find the exact sequence of characters t y l o r inside name and replace it with EFE.
+
+    But your string contains:
+
+    T y l o r
+
+    The first character is different:
+
+    "T" != "t"
+
+    Therefore Rust finds nothing to replace.
+
+    Correct version
+    let name = String::from("Tylor");
+    let course = "Rust".to_string();
+
+    let new_name = name.replace("Tylor", "EFE");
+
+    println!("{}", new_name);
+
+    Output:
+
+    EFE
+    An important thing about replace()
+
+    replace() does not modify the original String.
+
+    Instead, it creates and returns a new String.
+
+    So:
+
+    let name = String::from("Tylor");
+
+    let new_name = name.replace("Tylor", "EFE");
+
+    conceptually gives you:
+
+    name
+    ↓
+    "Tylor"
+
+    new_name
+    ↓
+    "EFE"
+
+    The original name is still "Tylor".
+
+    You can verify:
+
+    println!("name = {}", name);
+    println!("new_name = {}", new_name);
+
+    Output:
+
+    name = Tylor
+    new_name = EFE
+
+    This is different from something like modifying an element of a Vec.
+
+    Also notice that your two ways of creating a String are both valid:
+
+    let name = String::from("Tylor");
+
+    and:
+
+    let course = "Rust".to_string();
+
+    Both produce a String.
+
+    The next concept worth learning here is why Rust has both String and &str. That distinction is fundamental and 
+    will connect directly to the slices we just discussed. 
+    */
+
+
+
+    /************************************************************************************************************
+    This is a very important distinction in Rust, and it connects directly to what we just learned about slices.
+
+    Rust has two commonly used string types:
+
+    String
+
+    and
+
+    &str
+
+    The easiest way to understand them is:
+
+    String owns string data. &str is a borrowed view (slice) of string data.
+
+    Let's build this from the beginning.
+
+    1. First, what is a string?
+
+    Suppose we have:
+
+    let name = String::from("Tylor");
+
+    The text:
+
+    Tylor
+
+    is stored as bytes in memory.
+
+    Conceptually:
+
+    Tylor
+
+    T   y   l   o   r
+    ↓   ↓   ↓   ↓   ↓
+    84  121 108 111 114
+
+    These are UTF-8 bytes.
+
+    The String type owns those bytes.
+
+    So:
+
+    let name = String::from("Tylor");
+
+    creates a String that owns its memory.
+
+    2. What is &str?
+
+    Now consider:
+
+    let name = String::from("Tylor");
+
+    let part = &name[0..2];
+
+    part is not another String.
+
+    It is a string slice:
+
+    &str
+
+    It refers to a portion of the existing string.
+
+    Conceptually:
+
+    name: String
+            │
+            │ owns
+            ▼
+    ┌────┬────┬────┬────┬────┐
+    │ T  │ y  │ l  │ o  │ r  │
+    └────┴────┴────┴────┴────┘
+    ▲    ▲
+    └────┘
+    &str
+
+    The &str doesn't own those bytes.
+
+    It says:
+
+    "I want to look at this part of the existing string."
+
+    3. You have already been using &str without realizing it
+
+    Look at your previous code:
+
+    let name = String::from("Tylor");
+
+    Here:
+
+    "Tylor"
+
+    is a string literal.
+
+    A string literal has type:
+
+    &str
+
+    So:
+
+    let course = "Rust";
+
+    means roughly:
+
+    course
+    ↓
+    &str
+
+    while:
+
+    let course = "Rust".to_string();
+
+    creates:
+
+    course
+    ↓
+    String
+
+    This is one of the most important things to understand.
+
+    4. Why is a string literal &str?
+
+    Consider:
+
+    let name = "Tylor";
+
+    Where does "Tylor" live?
+
+    It is part of the program itself. The compiler knows this text when your program is compiled.
+
+    Conceptually:
+
+    Your executable
+    ┌───────────────────────────────┐
+    │                               │
+    │ machine code                  │
+    │                               │
+    │ "Tylor"                       │
+    │                               │
+    │ other program data            │
+    │                               │
+    └───────────────────────────────┘
+                ▲
+                │
+                │
+            name
+
+    name doesn't need to own and dynamically allocate "Tylor".
+
+    It can simply borrow/view that string data.
+
+    That's why:
+
+    let name = "Tylor";
+
+    has type:
+
+    &str
+    5. Compare these two
+    String
+    let name = String::from("Tylor");
+
+    This creates an owned, growable string.
+
+    &str
+    let name = "Tylor";
+
+    This creates a reference to a string slice.
+
+    So:
+
+    String
+    │
+    ├── owns the data
+    ├── heap allocated in the usual case
+    ├── growable
+    └── can be modified
+
+
+    &str
+    │
+    ├── doesn't own the data
+    ├── borrowed view
+    ├── not responsible for allocation
+    └── cannot be used to grow the underlying string
+    6. Why is String growable?
+
+    You can do:
+
+    let mut name = String::from("Tylor");
+
+    name.push('!');
+
+    Now:
+
+    Tylor!
+
+    You can also:
+
+    name.push_str(" Smith");
+
+    Now:
+
+    Tylor Smith
+
+    Because String owns its data, it can manage its memory and potentially allocate more space when necessary.
+
+    7. Can you modify an &str?
+
+    Consider:
+
+    let name = "Tylor";
+
+    You can't do:
+
+    name.push('!');
+
+    because name is an &str.
+
+    It is a borrowed view, not an owned growable string.
+
+    You can create a new String:
+
+    let mut name = "Tylor".to_string();
+
+    name.push('!');
+
+    Now it works because name is a String.
+
+    8. Why does &str have &?
+
+    Remember what we learned about references:
+
+    let x = 10;
+    let y = &x;
+
+    y doesn't own x.
+
+    It refers to x.
+
+    Same idea:
+
+    let name = String::from("Tylor");
+
+    let slice = &name[..];
+
+    Here:
+
+    name
+    ↓
+    String
+    owns the data
+
+    slice
+    ↓
+    &str
+    borrows the data
+
+    So you can think:
+
+    &str
+    │
+    ├── &
+    │   reference / borrow
+    │
+    └── str
+        string slice
+    9. str vs &str
+
+    You may wonder:
+
+    Why don't we just say str instead of &str?
+
+    This is an important Rust concept.
+
+    str is the slice type itself.
+
+    But a str has a size that isn't known at compile time.
+
+    For example:
+
+    "Hi"
+
+    has 2 UTF-8 bytes.
+
+    But:
+
+    "Hello"
+
+    has 5.
+
+    And:
+
+    "Hello world"
+
+    has 11.
+
+    So a bare str doesn't have a fixed size.
+
+    That's why you normally work with:
+
+    &str
+
+    which is a reference to a string slice.
+
+    You don't normally write:
+
+    let x: str;
+
+    Instead:
+
+    let x: &str;
+    10. A very useful memory picture
+
+    Consider:
+
+    let name = String::from("Tylor");
+    let slice = &name[1..4];
+
+    Conceptually:
+
+    Stack
+    ────────────────────────────
+
+    name
+    ┌─────────────────┐
+    │ pointer ──────────────┐
+    │ length = 5            │
+    │ capacity = ...        │
+    └─────────────────┘     │
+                            │
+    slice                   │
+    ┌─────────────────┐     │
+    │ pointer ──────────────┼───┐
+    │ length = 3       │   │   │
+    └─────────────────┘     │   │
+                            │   │
+                            ▼   ▼
+
+    Heap
+    ────────────────────────────
+
+    ┌────┬────┬────┬────┬────┐
+    │ T  │ y  │ l  │ o  │ r  │
+    └────┴────┴────┴────┴────┘
+        └────────────┘
+            slice
+
+    The String owns the heap allocation.
+
+    The &str simply points into that existing allocation.
+
+    It does not create another copy of "ylo".
+
+    11. This is why slices are efficient
+
+    Suppose you have a huge string:
+
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ.............."
+
+    and you want only part of it.
+
+    You could make another String, which would involve copying the relevant data.
+
+    Or you can borrow a slice:
+
+    let part = &text[10..20];
+
+    Now you're simply looking at part of the existing data.
+
+    That's cheap because you're not creating another owned string.
+
+    12. A very important function example
+
+    You'll often see Rust functions written like this:
+
+    fn print_name(name: &str) {
+        println!("{}", name);
+    }
+
+    Why not:
+
+    fn print_name(name: String)
+
+    ?
+
+    Because the function doesn't need to own the string.
+
+    It only needs to read it.
+
+    So &str is a better interface.
+
+    Then you can call it with a string literal:
+
+    print_name("Tylor");
+
+    or with a String:
+
+    let name = String::from("Tylor");
+
+    print_name(&name);
+
+    Both work.
+
+    Conceptually:
+
+    String ──borrow──> &str
+                        │
+                        ▼
+                    print_name()
+
+    This is a major reason you'll see &str everywhere in Rust.
+
+    13. One subtle point: String itself can be sliced
+
+    For example:
+
+    let name = String::from("Tylor");
+
+    let first_two = &name[0..2];
+
+    The types are:
+
+    name
+    ↓
+    String
+
+    first_two
+    ↓
+    &str
+
+    So:
+
+    String
+    │
+    │ borrow a portion
+    ▼
+    &str
+
+    And if you borrow the whole thing:
+
+    let whole = &name[..];
+
+    you get an &str representing the entire string.
+
+    This is very similar to what we learned with:
+
+    Vec<i32>
+
+    and:
+
+    &[i32]
+
+    In fact, you can see a very useful pattern:
+
+    Vector:
+    Vec<T>       → owns the elements
+    &[T]         → borrowed slice of elements
+
+
+    String:
+    String       → owns the string data
+    &str         → borrowed slice of string data
+
+    That parallel is worth remembering.
+
+    One warning about string slices
+
+    There is one extra complication compared with slices of i32.
+
+    Rust strings use UTF-8, where one character can occupy multiple bytes.
+
+    For example:
+
+    A     → 1 byte
+    é     → 2 bytes
+    ب     → 2 bytes
+    🚀    → 4 bytes
+
+    Therefore, this can be invalid:
+
+    let text = "سلام";
+
+    let part = &text[0..1];
+
+    because byte index 1 may cut through the middle of a UTF-8 character.
+
+    Rust prevents that and will panic rather than giving you invalid UTF-8.
+
+    We'll get into this when we discuss UTF-8, bytes, char, String, and &str, because that's an important part of understanding strings properly.
+
+    The core idea to remember
+    String
+    ↓
+    "I OWN this string data."
+
+    &str
+    ↓
+    "I BORROW/VIEW some string data."
+
+    And:
+
+    String ───────────── owns ─────────────> data
+    │
+    │ borrow
+    ▼
+    &str ───────────── views ─────────────> part/all of data
+
+    That distinction—ownership versus borrowing—is one of the central ideas of Rust.
+    */
+
+
+    
+    /************************************************************************************************************
+    Yes, exactly. You have the right idea. The important thing is to distinguish characters from the bytes that represent those characters in UTF-8.
+
+    For your example:
+
+    let name = String::from("Tylor");
+
+    The text "Tylor" is stored as UTF-8 encoded bytes in the string's underlying memory.
+
+    "Tylor" in memory
+
+    The characters are:
+
+    T    y    l    o    r
+
+    In UTF-8, each of these particular characters takes 1 byte, because they are ASCII characters.
+
+    Their byte values are:
+
+    T → 84
+    y → 121
+    l → 108
+    o → 111
+    r → 114
+
+    So conceptually the memory contains:
+
+    Memory:
+
+    ┌────────┬────────┬────────┬────────┬────────┐
+    │   84   │  121   │  108   │  111   │  114   │
+    │   T    │   y    │   l    │   o    │   r    │
+    └────────┴────────┴────────┴────────┴────────┘
+        1 B      1 B      1 B      1 B      1 B
+
+    So yes, the T is represented by the byte 84 in decimal.
+
+    However, one small correction:
+
+    Memory doesn't really store the number "84" as the characters 8 and 4.
+
+    It stores the 8 bits representing the value 84:
+
+    84 decimal
+        ↓
+    01010100 binary
+
+    So you can think of the memory as:
+
+    T
+    ↓
+    UTF-8 encoding
+    ↓
+    01010100
+    ↓
+    84 decimal
+    ↓
+    0x54 hexadecimal
+
+    All of these describe the same byte:
+
+    01010100 = 84 = 0x54 = UTF-8 byte for 'T'
+    But this becomes more interesting with non-English characters
+
+    Consider:
+
+    let name = String::from("EFE");
+
+    You get:
+
+    E → 69
+    F → 70
+    E → 69
+
+    So:
+
+    ┌────┬────┬────┐
+    │ 69 │ 70 │ 69 │
+    └────┴────┴────┘
+
+    But now consider:
+
+    let name = String::from("ب");
+
+    The Arabic/Persian character ب does not fit into one byte in UTF-8.
+
+    It is represented by multiple bytes:
+
+    ب
+    ↓
+    UTF-8
+    ↓
+    two bytes
+
+    So the memory might conceptually look like:
+
+    ┌────────┬────────┐
+    │  216   │  168   │
+    └────────┴────────┘
+
+    Those two bytes together represent the character ب in UTF-8.
+
+    And this is why I told you earlier that:
+
+    &text[0..1]
+
+    can be problematic with strings.
+
+    Because the indexes of a Rust String are byte positions, not character positions.
+
+    For example:
+
+    "ب"
+
+    takes 2 bytes, not 1:
+
+    byte index:
+        0       1
+        ↓       ↓
+        ┌───────┬───────┐
+        │ byte1 │ byte2 │
+        └───────┴───────┘
+
+    You cannot take only the first byte and call it a valid UTF-8 string.
+
+    And this connects to String vs &str
+
+    When we say:
+
+    let name = String::from("Tylor");
+
+    the String owns those UTF-8 bytes.
+
+    Conceptually:
+
+    String
+    ┌─────────────────────────┐
+    │ pointer ────────────────┼──────┐
+    │ length                  │      │
+    │ capacity                │      │
+    └─────────────────────────┘      │
+                                    ▼
+                            heap memory
+                        ┌────┬────┬────┬────┬────┐
+                        │ 84 │121 │108 │111 │114 │
+                        └────┴────┴────┴────┴────┘
+
+    And when you create:
+
+    let slice = &name[1..4];
+
+    the slice doesn't copy those bytes. It simply refers to:
+
+                y     l     o
+                ↓     ↓     ↓
+            ┌────┬────┬────┐
+            │121 │108 │111 │
+            └────┴────┴────┘
+            ↑           ↑
+            └── &str ───┘
+
+    So you're now seeing the connection between strings → UTF-8 → bytes → slices → memory, which is fundamental to 
+    understanding Rust strings.
+    */
+
+
+
+    /************************************************************************************************************
+    Yes — this is exactly the part that often causes confusion. The key is that "EFE" and the variable sample_string are two different things.
+
+    When you write:
+
+    let sample_string = "EFE";
+
+    the text "EFE" does exist somewhere in memory. It is not that the text disappears because sample_string doesn't own it.
+
+    Let's separate the two things.
+
+    1. Where is "EFE"?
+
+    Because "EFE" is a string literal, it is embedded into your compiled program.
+
+    Conceptually, imagine your executable contains an area like this:
+
+    Your program's memory
+
+    ┌─────────────────────────────────┐
+    │                                 │
+    │ machine code                    │
+    │                                 │
+    │ "EFE"                           │
+    │  ↓                              │
+    │ ┌────┬────┬────┐                │
+    │ │ 69 │ 70 │ 69 │                │
+    │ └────┴────┴────┘                │
+    │                                 │
+    │ other program data              │
+    │                                 │
+    └─────────────────────────────────┘
+
+    Remember:
+
+    E = 69 decimal = 0x45
+    F = 70 decimal = 0x46
+    E = 69 decimal = 0x45
+
+    So the bytes representing "EFE" are somewhere in the program's memory.
+
+    2. Then what is sample_string?
+
+    Now look at:
+
+    let sample_string = "EFE";
+
+    sample_string doesn't need to own those bytes.
+
+    It essentially says:
+
+    "I want to refer to the "EFE" text that already exists."
+
+    Conceptually:
+
+    sample_string
+        │
+        │ refers to
+        ▼
+    ┌────┬────┬────┐
+    │ 69 │ 70 │ 69 │
+    │ E  │ F  │ E  │
+    └────┴────┴────┘
+
+    That's why its type is:
+
+    &str
+
+    You can think of &str as:
+
+    a reference to some UTF-8 string data + information about how much of that data belongs to the slice.
+
+    3. But where exactly is "EFE" stored?
+
+    For a string literal, such as:
+
+    let sample_string = "EFE";
+
+    the literal is typically stored in a read-only portion of the program's memory (often called the read-only data or rodata section).
+
+    A simplified picture is:
+
+    Process memory
+    ────────────────────────────────
+
+    Code
+    ┌─────────────────────────────┐
+    │ compiled Rust instructions  │
+    └─────────────────────────────┘
+
+    Read-only data
+    ┌─────────────────────────────┐
+    │ "EFE"                       │
+    │                             │
+    │ 69  70  69                  │
+    └─────────────────────────────┘
+            ▲
+            │
+            │ points to
+            │
+        sample_string
+        ┌──────────────┐
+        │ pointer      │
+        │ length = 3   │
+        └──────────────┘
+
+    This is a simplified conceptual model, but it's the right mental model for learning.
+
+    4. So why do we call it a "slice"?
+
+    This is the subtle part.
+
+    The type:
+
+    &str
+
+    doesn't mean:
+
+    "The text itself is stored inside the variable."
+
+    It means:
+
+    "This variable contains a reference to some UTF-8 string data."
+
+    For example:
+
+    let sample_string = "EFE";
+
+    Here, "EFE" happens to be the entire string literal.
+
+    So sample_string is a &str referring to all three bytes:
+
+            E     F     E
+            ↓     ↓     ↓
+            ┌─────┬─────┬─────┐
+            │ 69  │ 70  │ 69  │
+            └─────┴─────┴─────┘
+            <──────────────>
+                    ↑
+                    &str
+
+    But a slice doesn't have to represent the entire data.
+
+    Consider:
+
+    let name = String::from("ABCDE");
+    let sample = &name[1..4];
+
+    Now:
+
+    String owns:
+
+    ┌────┬────┬────┬────┬────┐
+    │ A  │ B  │ C  │ D  │ E  │
+    └────┴────┴────┴────┴────┘
+        └────────────┘
+            sample
+
+    sample refers only to:
+
+    BCD
+
+    So:
+
+    String
+    │
+    │ owns
+    ▼
+    ABCDE
+    │
+    │ borrowed
+    ▼
+    &str
+    BCD
+
+    That's why it's called a slice.
+
+    It can represent a portion of a larger string.
+
+    5. So "EFE" is a special case
+
+    This is an important distinction:
+
+    let sample_string = "EFE";
+
+    Here:
+
+    "E​​FE"
+
+    is a string literal, and:
+
+    sample_string
+
+    is a &str referring to that literal.
+
+    The literal itself is not a slice.
+
+    The reference to it has the type &str.
+
+    This is a much more precise way to think about it:
+
+    "EFE"
+    │
+    │ is string data
+    │
+    ▼
+    UTF-8 bytes
+    69 70 69
+
+
+    sample_string
+    │
+    │ is a &str
+    │
+    ▼
+    references those bytes
+    6. Compare it with String
+
+    Now compare:
+
+    let a = "EFE";
+
+    with:
+
+    let b = String::from("EFE");
+
+    They both let you work with the text "EFE", but their ownership is different.
+
+    First:
+    let a = "EFE";
+
+    Conceptually:
+
+    Program's read-only data
+    ┌────┬────┬────┐
+    │ E  │ F  │ E  │
+    └────┴────┴────┘
+        ▲
+        │
+        │ borrowed/viewed by
+        │
+        a: &str
+
+    a doesn't own the bytes.
+
+    Second:
+    let b = String::from("EFE");
+
+    Conceptually:
+
+    String b
+    ┌─────────────────┐
+    │ pointer ──────────────┐
+    │ length = 3       │    │
+    │ capacity = ...   │    │
+    └─────────────────┘    │
+                        ▼
+                        heap
+                    ┌────┬────┬────┐
+                    │ E  │ F  │ E  │
+                    └────┴────┴────┘
+
+    b owns its string data.
+
+    That's why b can grow:
+
+    let mut b = String::from("EFE");
+
+    b.push('X');
+
+    Now:
+
+    EFEX
+
+    But you can't do the equivalent to:
+
+    let a = "EFE";
+
+    because a is only a borrowed view of the string literal.
+
+    7. One more thing: &str isn't literally just a pointer
+
+    This will become important when you study Rust memory more deeply.
+
+    A &str is conceptually a fat pointer containing two pieces of information:
+
+    &str
+    ┌────────────────┐
+    │ pointer        │ ────────> first byte
+    │ length         │
+    └────────────────┘
+
+    For:
+
+    let sample_string = "EFE";
+
+    conceptually:
+
+    sample_string
+    ┌────────────────┐
+    │ pointer ──────────────┐
+    │ length = 3       │    │
+    └────────────────┘    │
+                        ▼
+                    ┌────┬────┬────┐
+                    │ 69 │ 70 │ 69 │
+                    │ E  │ F  │ E  │
+                    └────┴────┴────┘
+
+    The pointer tells it where the string data starts.
+
+    The length tells it how many bytes belong to the slice.
+
+    And that's why a slice can point to just part of some larger data.
+
+    So the most important thing to fix in your mental model is:
+
+    "EFE" is the actual string data. sample_string is a &str that refers to that data.
+
+    It is not:
+
+    "sample_string contains the string but doesn't own it."
+
+    It is closer to:
+
+    "sample_string contains a borrowed reference/view describing where the string data is and how long it is."
+
+    That distinction will make ownership and borrowing much easier to understand when we get there.
+    */
+
+
+
+
 
 
 
