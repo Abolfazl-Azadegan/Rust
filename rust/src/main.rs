@@ -979,7 +979,8 @@ fn main() {
     println!("-------------------------------------------------------------");
 
 
-    /*Yes — your first part is correct, but there is one important mistake in your comments, and the second part is about the difference between length and capacity.
+    /*Yes — your first part is correct, but there is one important mistake in your comments, and the second 
+    part is about the difference between length and capacity.
 
     Your code:
 
@@ -1735,7 +1736,643 @@ fn main() {
     */
 
 
+    /*The reason is that an empty Vec initially has no allocated element buffer at all. When you perform the first push(), 
+    Rust has to allocate memory, and your current implementation chooses a capacity of 8.
 
+    Let's go through your code one line at a time.
+
+    1. When you create the vector
+    let mut new_vec4 = Vec::<i8>::new();
+
+    At this moment:
+
+    Length    = 0
+    Capacity  = 0
+
+    Why?
+
+    Because you said:
+
+    Create a new vector, and I don't need any elements yet.
+
+    Rust doesn't need to allocate memory for elements yet.
+
+    Conceptually:
+
+    new_vec4
+    ┌──────────────┐
+    │ pointer      │ ──────> nothing allocated
+    │ length = 0   │
+    │ capacity = 0 │
+    └──────────────┘
+
+    There is no reason to allocate memory for 8 i8s when you haven't put anything into the vector.
+
+    So:
+
+    println!("Capacity: {}", new_vec4.capacity());
+
+    prints:
+
+    Capacity: 0
+    2. Then you execute the first push()
+    new_vec4.push(1);
+
+    Now Rust has a problem:
+
+    "The vector currently has capacity 0, but the user wants to store one element."
+
+    It therefore needs to allocate memory.
+
+    Your Rust implementation decides to allocate enough space for 8 i8 elements.
+
+    Remember:
+
+    i8 = 1 byte
+
+    Therefore:
+
+    8 i8s = 8 bytes
+
+    Conceptually, memory now looks like:
+
+                        allocated memory
+                            ↓
+    ┌────┬────┬────┬────┬────┬────┬────┬────┐
+    │  1 │    │    │    │    │    │    │    │
+    └────┴────┴────┴────┴────┴────┴────┴────┘
+    ↑
+    actual element
+
+    length   = 1
+    capacity = 8
+
+    So your output becomes:
+
+    Length: 1
+    Capacity: 8
+
+    This is the important distinction:
+
+    Length = how many elements you actually have.
+
+    Capacity = how many elements the current allocation can hold.
+
+    3. Then you execute the second push()
+    new_vec4.push(2);
+
+    Rust checks:
+
+    Current length:    1
+    Current capacity:  8
+
+    You're asking it to add one more element.
+
+    After adding it:
+
+    Length would become 2
+
+    Is:
+
+    2 <= 8
+
+    Yes.
+
+    So Rust doesn't need to allocate anything.
+
+    It simply puts 2 into the already-allocated space:
+
+    ┌────┬────┬────┬────┬────┬────┬────┬────┐
+    │  1 │  2 │    │    │    │    │    │    │
+    └────┴────┴────┴────┴────┴────┴────┴────┘
+    <──────>
+    length = 2
+
+    <──────────────────────────────────────>
+                capacity = 8
+
+    Therefore:
+
+    Length: 2
+    Capacity: 8
+    So the whole process is
+    Vec::<i8>::new()
+            │
+            ▼
+    ┌─────────────────────────┐
+    │ length   = 0            │
+    │ capacity = 0            │
+    │ no element allocation   │
+    └─────────────────────────┘
+            │
+            │ push(1)
+            ▼
+    ┌─────────────────────────┐
+    │ length   = 1            │
+    │ capacity = 8            │
+    │                         │
+    │ [1][ ][ ][ ][ ][ ][ ][ ]│
+    └─────────────────────────┘
+            │
+            │ push(2)
+            ▼
+    ┌─────────────────────────┐
+    │ length   = 2            │
+    │ capacity = 8            │
+    │                         │
+    │ [1][2][ ][ ][ ][ ][ ][ ]│
+    └─────────────────────────┘
+
+    The important event is the first push().
+
+    That's when your vector goes from:
+
+    capacity 0
+
+    to:
+
+    capacity 8
+
+    After that, Rust can keep using that allocated memory until it fills up.
+
+    What happens at the 9th push()?
+
+    This is where the behavior you've been asking about becomes really interesting.
+
+    If your vector has:
+
+    length   = 8
+    capacity = 8
+
+    then:
+
+    new_vec4.push(9);
+
+    cannot simply put 9 into the existing allocation.
+
+    There is no room:
+
+    ┌────┬────┬────┬────┬────┬────┬────┬────┐
+    │ 1  │ 2  │ 3  │ 4  │ 5  │ 6  │ 7  │ 8  │
+    └────┴────┴────┴────┴────┴────┴────┴────┘
+                                        ↑
+                                capacity full
+
+    Rust then has to grow the allocation.
+
+    Your system might do something like:
+
+    capacity 8
+        ↓
+    capacity 16
+
+    and move the existing elements into the new allocation.
+
+    That's why Vec is closely connected to heap memory, pointers, allocation, reallocation, and eventually ownership and borrowing.
+
+    One very useful experiment now is to change your program to push 20 or 30 elements and print len() and capacity() 
+    after every push. That will let you watch your particular Rust implementation grow the vector in real time.
+    */
+
+
+    println!("-------------------------------------------------------------");
+    let vector_from_iterator:Vec<i32>= (0..5).collect();
+    println!("The value of vector_from_iterator is: {:?}", vector_from_iterator);
+
+
+
+    //-----------------------------------------------------------------------------------------------
+
+    // This is how we define slices in rust
+
+    let sv: &[i32] = &vector_from_iterator;
+    println!("This is sv slice which points to the whole of vector_from_iterator: {:?}", sv);
+
+    let sv2: &[i32] = &vector_from_iterator[2..4];
+    println!("This is sv2 slice which points to the index 2 to 4 of vector_from_iterator: {:?}", sv2);
+
+    /*A slice in Rust is a way to refer to part of a collection without owning that collection.
+
+    Since you're learning Vec right now, the easiest way to understand slices is to start with a vector.
+
+    Suppose we have:
+
+    let numbers = vec![10, 20, 30, 40, 50];
+
+    The vector contains five elements:
+
+    index:    0    1    2    3    4
+            ↓    ↓    ↓    ↓    ↓
+            ┌────┬────┬────┬────┬────┐
+            │ 10 │ 20 │ 30 │ 40 │ 50 │
+            └────┴────┴────┴────┴────┘
+
+    Now imagine that we only want to work with:
+
+    20, 30, 40
+
+    We can create a slice:
+
+    let part = &numbers[1..4];
+
+    Now:
+
+    numbers:
+    ┌────┬────┬────┬────┬────┐
+    │ 10 │ 20 │ 30 │ 40 │ 50 │
+    └────┴────┴────┴────┴────┘
+        └──────────────┘
+            slice
+
+    part refers to elements at indexes:
+
+    1, 2, 3
+
+    so:
+
+    println!("{:?}", part);
+
+    prints:
+
+    [20, 30, 40]
+    The important part: what does & mean?
+
+    This is where slices become connected to ownership and borrowing.
+
+    We wrote:
+
+    let part = &numbers[1..4];
+
+    There are actually two concepts here:
+
+    [1..4]
+
+    means:
+
+    Select the range from index 1 up to, but NOT including, index 4.
+
+    And:
+
+    &
+
+    means:
+
+    Borrow/refer to this data rather than taking ownership of it.
+
+    So:
+
+    &numbers[1..4]
+
+    means roughly:
+
+    "Give me a borrowed view of this portion of numbers."
+
+    The slice does not create a new vector.
+
+    That's extremely important.
+
+    Slice vs Vec
+
+    Consider:
+
+    let numbers = vec![10, 20, 30, 40, 50];
+
+    let part = &numbers[1..4];
+
+    You now have:
+
+    numbers
+    │
+    ▼
+    ┌────┬────┬────┬────┬────┐
+    │ 10 │ 20 │ 30 │ 40 │ 50 │
+    └────┴────┴────┴────┴────┘
+        ▲         ▲
+        │         │
+        └─────────┘
+            part
+
+    part doesn't contain another copy of:
+
+    20, 30, 40
+
+    Instead, it refers to the existing memory.
+
+    Conceptually:
+
+    numbers
+    │
+    │ owns
+    ▼
+    ┌────┬────┬────┬────┬────┐
+    │ 10 │ 20 │ 30 │ 40 │ 50 │
+    └────┴────┴────┴────┴────┘
+        ▲         ▲
+        │         │
+        └─────────┘
+            borrowed
+            slice
+
+    This is one of the reasons slices are very useful.
+
+    What is the type of a slice?
+
+    For a vector of i32:
+
+    let numbers = vec![10, 20, 30, 40, 50];
+
+    let part = &numbers[1..4];
+
+    the type of part is:
+
+    &i32
+
+    No — careful! That's not correct.
+
+    The type is:
+
+    &[i32]
+
+    Read this as:
+
+    a reference (&) to a slice ([i32]) of i32 values.
+
+    So:
+
+    &i32
+    │
+    └── reference to ONE i32
+
+
+    &[i32]
+    │
+    └── reference to a SLICE of i32 values
+
+    For example:
+
+    let x = &numbers[2];
+
+    is a reference to one element:
+
+    &i32
+
+    while:
+
+    let x = &numbers[1..4];
+
+    is a reference to multiple elements:
+
+    &[i32]
+    Why does [1..4] contain 3 elements?
+
+    Rust uses the convention:
+
+    start..end
+
+    where start is included and end is excluded.
+
+    So:
+
+    numbers[1..4]
+
+    means:
+
+    index 1
+    index 2
+    index 3
+
+    but not index 4.
+
+    Therefore:
+
+    numbers:
+
+    index       0    1    2    3    4
+                ↓    ↓    ↓    ↓    ↓
+            10   20   30   40   50
+                    └───────┘
+                    1..4
+
+    The slice contains:
+
+    20, 30, 40
+    You can also omit the beginning or end
+
+    For example:
+
+    &numbers[..3]
+
+    means:
+
+    From the beginning through index 2.
+
+    So:
+
+    [10, 20, 30]
+
+    Similarly:
+
+    &numbers[2..]
+
+    means:
+
+    From index 2 until the end.
+
+    So:
+
+    [30, 40, 50]
+
+    And:
+
+    &numbers[..]
+
+    means:
+
+    The entire vector as a slice.
+
+    So:
+
+    let all = &numbers[..];
+
+    gives you a &[i32] referring to the entire vector.
+
+    Why not just use the Vec directly?
+
+    This is one of the biggest reasons slices exist.
+
+    Imagine you write a function that needs to process some numbers.
+
+    You could write:
+
+    fn print_numbers(numbers: &Vec<i32>) {
+        println!("{:?}", numbers);
+    }
+
+    But this function specifically expects a Vec.
+
+    A slice is more general:
+
+    fn print_numbers(numbers: &[i32]) {
+        println!("{:?}", numbers);
+    }
+
+    Now the function doesn't care whether the data came from a Vec, an array, or another slice.
+
+    For example:
+
+    let numbers = vec![10, 20, 30, 40];
+
+    print_numbers(&numbers);
+
+    You can pass the vector as a slice.
+
+    You can also have an array:
+
+    let numbers = [10, 20, 30, 40];
+
+    print_numbers(&numbers);
+
+    Both can work because both can be viewed as a slice of i32.
+
+    This is the deeper idea
+
+    A slice is basically a view into a contiguous sequence of elements.
+
+    It doesn't own those elements.
+
+    Think of a book.
+
+    Suppose you own a 500-page book.
+
+    The book is like the Vec:
+
+    Vec
+    ┌───────────────────────────┐
+    │ Page 1 ... Page 500       │
+    └───────────────────────────┘
+
+    You ask someone:
+
+    "Give me pages 100–150."
+
+    They don't need to photocopy those 50 pages.
+
+    They can simply give you a reference saying:
+
+    "Look at pages 100 through 150 of that book."
+
+    That's conceptually what a slice does.
+
+    The original collection owns the data.
+
+    The slice borrows a portion of it.
+
+    And this connects directly to the memory discussion we just had
+
+    Remember that we said a Vec conceptually contains:
+
+    Vec
+    ┌────────────────┐
+    │ pointer        │ ──────┐
+    │ length         │       │
+    │ capacity       │       │
+    └────────────────┘       │
+                            ▼
+                        ┌────┬────┬────┬────┬────┐
+                        │ 10 │ 20 │ 30 │ 40 │ 50 │
+                        └────┴────┴────┴────┴────┘
+
+    A slice doesn't need to own this allocation.
+
+    It can essentially say:
+
+    "I start here"
+        +
+    "and contain this many elements"
+
+    Conceptually:
+
+    Vec
+                        ┌────┬────┬────┬────┬────┐
+                        │ 10 │ 20 │ 30 │ 40 │ 50 │
+                        └────┴────┴────┴────┴────┘
+                            ▲              ▲
+                            │              │
+                            │              │
+                        start          length
+                            │
+                            └──────────────┘
+                                slice
+
+    A slice does not have a capacity in the same sense that a Vec does.
+
+    That's because the slice doesn't manage the allocation.
+
+    The Vec owns and manages the underlying memory.
+
+    The slice just gives you a view into part of it.
+
+    One important distinction to remember
+
+    You will encounter these three things constantly:
+
+    Vec<i32>
+
+    A vector that owns its data and can grow/shrink.
+
+    [i32; 5]
+
+    An array containing exactly 5 i32s.
+
+    And:
+
+    &[i32]
+
+    A borrowed slice of i32s.
+
+    A very useful mental model is:
+
+    Vec<i32>
+    │
+    │ can create a view of
+    ▼
+    &[i32]
+
+    For example:
+
+    let numbers = vec![10, 20, 30, 40, 50];
+
+    let slice = &numbers[1..4];
+
+    Here:
+
+    numbers
+    ↓
+    Vec<i32>
+    owns the data
+        │
+        │ borrow
+        ▼
+    slice
+    ↓
+    &[i32]
+    doesn't own the data
+
+    This concept becomes very important when we get to ownership and borrowing, because slices are one of the best 
+    examples of why Rust needs its ownership system in the first place.
+    */
+
+    //-----------------------------------------------------------------------------------------------
+
+    //This is how we define a string in rust
+    let name  = String::from("Tylor");
+    let course = "Rust".to_string();
+    let new_name = name.replace("Tylor", "EFE");
+
+    println!("-------------------------------------------------------------");
+    println!("This is name String variable: {}", name);
+    println!("This is course String variable: {}", course);
+    println!("This is new_name String variable: {}", new_name);
 
 
 
