@@ -810,7 +810,7 @@ fn main() {
     // The most convenient:
 
     let numbers_1 = vec![10, 20, 30];
-
+                              
     //Rust infers: Vec<i32>
    
     println!("-------------------------------------------------------------");
@@ -4341,6 +4341,234 @@ fn main() {
         println!("The current element is the Vec_in_for_loop is: {}", element);
     }
 
+    
+
+    println!("-------------------------------------------------------------");
+    println!("-------------------------------------------------------------");
+
+
+    for new_number in (0..6).rev(){
+        println!("The numner is: {}", new_number);
+    }
+
+
+
+
+    /************************************************************************************************************
+    First, one small correction: your vector should be:
+
+    let mut numbers = vec![2, 4, 6, 8, 10];
+
+    You want:
+
+    Before:
+    [2, 4, 6, 8, 10]
+
+    After:
+    [2, 40, 60, 8, 10]
+    1. The simplest way: modify by index
+
+    Since you already know that 4 is at index 1 and 6 is at index 2:
+
+    let mut numbers = vec![2, 4, 6, 8, 10];
+
+    numbers[1] = 40;
+    numbers[2] = 60;
+
+    println!("{:?}", numbers);
+
+    Output:
+
+    [2, 40, 60, 8, 10]
+
+    Remember that Rust indexes from 0:
+
+    Value:    2    4    6    8    10
+    Index:    0    1    2    3     4
+
+    So:
+
+    numbers[1] = 40;
+
+    means:
+
+    Go to index 1, which currently contains 4, and replace it with 40.
+
+    And:
+
+    numbers[2] = 60;
+
+    means:
+
+    Go to index 2, which currently contains 6, and replace it with 60.
+
+    Notice that we're not actually removing anything here. We're simply replacing the values.
+
+    2. What about pop()?
+
+    pop() does something quite different.
+
+    pop() removes the last element of a vector.
+
+    For example:
+
+    let mut numbers = vec![2, 4, 6, 8, 10];
+
+    let x = numbers.pop();
+
+    println!("{:?}", numbers);
+
+    Now:
+
+    Before:
+    [2, 4, 6, 8, 10]
+
+                ↑
+                pop()
+                |
+                ↓
+
+    After:
+    [2, 4, 6, 8]
+
+    The value 10 is removed.
+
+    And pop() returns the removed value:
+
+    x = Some(10)
+
+    So pop() is useful when you want to remove the last item, not an item in the middle.
+
+    3. What if you really want to remove 4 and 6?
+
+    There are methods specifically for removing elements at particular positions.
+
+    For example:
+
+    let mut numbers = vec![2, 4, 6, 8, 10];
+
+    numbers.remove(1);
+    numbers.remove(1);
+
+    println!("{:?}", numbers);
+
+    Be careful here!
+
+    After the first removal:
+
+    Original:
+
+    Index:   0   1   2   3   4
+            ↓   ↓   ↓   ↓   ↓
+            [2,  4,  6,  8, 10]
+
+    numbers.remove(1);
+
+            [2,  6,  8, 10]
+                ↑
+                index 1
+
+    The 6 moves into index 1.
+
+    Therefore the second:
+
+    numbers.remove(1);
+
+    removes 6.
+
+    Result:
+
+    [2, 8, 10]
+
+    Then you could insert 40 and 60:
+
+    numbers.insert(1, 40);
+    numbers.insert(2, 60);
+
+    Result:
+
+    [2, 40, 60, 8, 10]
+
+    But for your particular task, this is unnecessarily complicated.
+
+    4. If your goal is simply "replace 4 with 40 and 6 with 60"
+
+    Use:
+
+    let mut numbers = vec![2, 4, 6, 8, 10];
+
+    numbers[1] = 40;
+    numbers[2] = 60;
+
+    println!("{:?}", numbers);
+
+    You don't need pop(), remove(), or insert().
+
+    The distinction to remember is:
+
+    pop()       → remove the LAST element
+
+    remove(i)   → remove the element at index i
+
+    insert(i,x) → insert x at index i
+
+    numbers[i] = x
+                → REPLACE the element at index i
+
+    For your case, numbers[i] = x is exactly what you want.
+
+    */
+
+
+
+    let var1 = 5;
+    let var2 = 2;
+    let ans = var1 + var2;
+    println!("ans is: {}", ans);
+
+    println!("-------------------------------------------------------------");
+    println!("-------------------------------------------------------------");
+
+    let mut vector1 = vec![2,4,6,8,10];
+    println!("The vector1 is: {:?}", vector1);
+    vector1.pop();
+    println!("The vector1 is: {:?}", vector1);
+    vector1.push(12);
+    println!("The vector1 is: {:?}", vector1);
+
+    vector1.remove(1);
+    println!("The vector1 is: {:?}", vector1);
+    vector1.remove(1);
+    println!("The vector1 is: {:?}", vector1);
+    vector1.insert(1, 40);
+    println!("The vector1 is: {:?}", vector1);
+    vector1.insert(2, 60);
+    println!("The vector1 is: {:?}", vector1);
+    vector1[3] = 80;
+    println!("The vector1 is: {:?}", vector1);
+
+    println!("-------------------------------------------------------------");
+    println!("-------------------------------------------------------------");
+
+    /************************************************************************************************************
+    //Reminder as how we can define a vector
+    // You can also specify the type:
+    let mut numbers_2: Vec<i32> = vec![100, 200, 300];
+
+
+    // Creating an empty vector
+    let mut numbers_3: Vec<i32> = Vec::new();
+     */
+
+
+     
+    let string_test = String::from("Hello");
+    let concatenated_string = concat_function (string_test);
+    println!("The concatenated string is: {:?}", concatenated_string);
+
+
+
+
 
 }
 
@@ -4349,8 +4577,10 @@ fn main() {
 //-----------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------
 
-
-
+//Here we pass the string to the function and the function will return String type as well.
+fn concat_function (val:String) -> String{
+    val+" World!!"
+}
 
 
 //In paranteses we define how we should pass the variables and values to the fucntion
