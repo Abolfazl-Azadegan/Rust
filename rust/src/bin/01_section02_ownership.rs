@@ -1571,6 +1571,373 @@ fn main() {
 
 
 
+    /************************************************************************************************************
+    it depends on whether your reference is mutable or immutable. This is one of the most important parts of Rust's 
+    borrowing system.
+
+    Let's start from the simplest case.
+
+    1. Normal reference: &String
+
+    Suppose:
+
+    let mut string1 = String::from("EFE");
+
+    let string2 = &string1;
+
+    Here:
+
+    string1
+    |
+    | OWNS
+    v
+    "EFE"
+
+    string2
+    |
+    | BORROWS
+    v
+    "EFE"
+
+    string2 is an immutable reference because we wrote:
+
+    &string1
+
+    not:
+
+    &mut string1
+
+    Therefore, you cannot modify the String through string2:
+
+    let mut string1 = String::from("EFE");
+
+    let string2 = &string1;
+
+    string2.push_str(" SHENEM");  // ❌ ERROR
+
+    Why?
+
+    Because string2 is only allowed to look at the String, not modify it.
+
+    Think:
+
+    &String
+    |
+    +-- can READ
+    |
+    +-- cannot MODIFY
+    2. Mutable reference: &mut String
+
+    If you want the new variable to be able to modify the String, you need a mutable reference:
+
+    let mut string1 = String::from("EFE");
+
+    let string2 = &mut string1;
+
+    string2.push_str(" SHENEM");
+
+    println!("{}", string1);
+
+    Output:
+
+    EFE SHENEM
+
+    Now the situation is:
+
+    string1
+    |
+    | OWNS
+    v
+    "EFE"
+
+    string2
+    |
+    | &mut
+    v
+    "EFE"
+
+    string2 doesn't own the String.
+
+    It borrows the String from string1, but it has permission to modify it.
+
+    So:
+
+    &String
+        ↓
+    read only
+
+    &mut String
+        ↓
+    read + modify
+    3. Why does string1 need mut?
+
+    Notice:
+
+    let mut string1 = String::from("EFE");
+
+    The mut is necessary.
+
+    Without it:
+
+    let string1 = String::from("EFE");
+
+    let string2 = &mut string1; // ❌
+
+    Rust won't allow you to create a mutable reference to an immutable variable.
+
+    You can think of it as:
+
+    let string1
+        ↓
+    "I own this, but nobody is allowed to modify it"
+
+    let mut string1
+        ↓
+    "I own this, and modification is allowed"
+    4. Very important: mut on the reference and mut on the String are different things
+
+    This can initially be confusing.
+
+    Consider:
+
+    let mut string1 = String::from("EFE");
+
+    let string2 = &mut string1;
+
+    There are two concepts:
+
+    string1
+    |
+    | owns String
+    |
+    | mutable owner
+    v
+    "EFE"
+
+    string2
+    |
+    | mutable reference
+    v
+    "EFE"
+
+    mut on string1 means:
+
+    The owner allows its String to be modified.
+
+    &mut means:
+
+    This particular borrower is allowed to modify the String.
+
+    5. You can also pass a mutable reference to a function
+
+    For example:
+
+    fn change_string(s: &mut String) {
+        s.push_str(" SHENEM");
+    }
+
+    fn main() {
+        let mut string1 = String::from("EFE");
+
+        change_string(&mut string1);
+
+        println!("{}", string1);
+    }
+
+    Output:
+
+    EFE SHENEM
+
+    Let's follow ownership.
+
+    Initially:
+
+    string1
+    |
+    | OWNS
+    v
+    "EFE"
+
+    Then:
+
+    change_string(&mut string1);
+
+    We temporarily give the function a mutable borrow:
+
+    string1
+    |
+    | OWNS
+    v
+    "EFE"
+    ^
+    |
+    | mutable borrow
+    |
+    s
+
+    The function can modify the data:
+
+    s.push_str(" SHENEM");
+
+    So the data becomes:
+
+    "EFE SHENEM"
+
+    But s never becomes the owner.
+
+    When the function finishes:
+
+    s → gone
+
+    and:
+
+    string1
+    |
+    | STILL OWNS
+    v
+    "EFE SHENEM"
+
+    That's why this works:
+
+    println!("{}", string1);
+    6. But Rust has an important rule
+
+    You cannot have a mutable reference and another reference to the same data being used at the same time.
+
+    For example:
+
+    let mut string1 = String::from("EFE");
+
+    let string2 = &string1;
+    let string3 = &mut string1;
+
+    This is not allowed because:
+
+    string2
+    |
+    | reading
+    v
+    string1
+
+    string3
+    |
+    | modifying
+    v
+    string1
+
+    Rust doesn't want one part of your program reading the data while another part might change it simultaneously.
+
+    The simplified rule is:
+
+    Either you can have multiple immutable references,
+    or you can have one mutable reference,
+    but you cannot have both at the same time.
+
+    So this is fine:
+
+    let string1 = String::from("EFE");
+
+    let a = &string1;
+    let b = &string1;
+    let c = &string1;
+
+    Multiple readers are okay.
+
+    And this is fine:
+
+    let mut string1 = String::from("EFE");
+
+    let a = &mut string1;
+
+    a.push_str("!");
+
+    One mutable borrower is okay.
+
+    But not simultaneously:
+
+    let mut string1 = String::from("EFE");
+
+    let a = &string1;
+    let b = &mut string1; // ❌
+    The key thing to remember
+
+    For now, memorize this:
+
+    &String
+
+    means:
+
+    "I can borrow the String and read it, but I cannot modify it through this reference."
+
+    Whereas:
+
+    &mut String
+
+    means:
+
+    "I can temporarily borrow the String and modify it, but I still don't own it."
+
+    So:
+
+    String
+    │
+    └── ownership
+        ↓
+        owner
+
+
+    &String
+    │
+    └── immutable borrowing
+        ↓
+        read
+
+
+    &mut String
+    │
+    └── mutable borrowing
+        ↓
+        read + modify
+
+     */
+
+    // In below example code we can not define the s as a variable which is immutable because later in the fucntion we will
+    // modify the text and this will generate an error.
+    //So we define it as muable and pass it with reference and mut to the fucntion and we can mpdify it.
+    let mut s = String::from("Hello");
+    println!("Before: {}", s);
+    push_to_string(&mut s);
+    println!("After: {}", s);
+
+
+    println!("-------------------------------------------------------------");
+    println!("-------------------------------------------------------------");
+
+    let vector = vec![1,3,5,7];
+    println!("The returned value is: {}", check_vector(vector));
+    // below line will generate an error because the ownership of the function has moved to variable vec_val in function
+    // and we passed the vector vector to the check_vector function with value not by reference so the ownership will move
+    // to the variable in the function.
+    // println!("The main vector is: {:?}", vector);
+
+
+    let mut vector2 = vec![1,3,5,7];
+    println!("The returned value is: {}", check_vector2(&vector2));
+    vector2.push(15);
+    println!("The main vector after running the function is: {:?}", vector2);
+
+
+    println!("-------------------------------------------------------------");
+    println!("-------------------------------------------------------------");
+
+
+    //The i value types are simple types and we can run the below function without moving the ownership to the varibale inside
+    // the function. the simple types will copy instead of move ownership to the variable.
+    let var1 = 10;
+    println!("var1 before the function is: {}", var1);
+    println!("The returned value by the function is: {}", add_2 (var1));
+    println!("var1 after the function is: {}", var1)
+
 
 }
 
@@ -1586,9 +1953,35 @@ fn print_string_by_value (s: String) {
 }
 
 
+fn push_to_string(receive_string: &mut String){
+    receive_string.push_str(" World!!");
+}
+
 // var1 will drop after the main function terminate.
 // string1 will drop after main function terminate.
 
 
+
+fn check_vector (vec_val: Vec<i8>) -> bool{
+    if vec_val[0] == 1{
+        return true
+    }else {
+        return false
+    }
+}
+
+
+fn check_vector2 (vec_val: &Vec<i8>) -> bool{
+    if vec_val[0] == 1{
+        return true
+    }else {
+        return false
+    }
+}
+
+
+fn add_2 (v:i32) -> i32{
+    return v+2;
+}
 
 
