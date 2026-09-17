@@ -1,11 +1,20 @@
+
 // We use Camel Case for creating a structure in rust. 
 // In below struct the User is the name of the struct.
+// This is named struct
 struct User{
     name:String,
     age: i32,
     is_active:bool,
     score: f32
 }
+
+//This is tuple struct
+struct Coordinates(f64,f64);
+
+
+
+struct UnitStruct;
 
 
 fn main(){
@@ -3436,10 +3445,1700 @@ fn main(){
 
 
 
+    /************************************************************************************************************
+      The most important thing is this:
+
+    String owns text. &str is a borrowed view of text.
+
+    But that sentence alone isn't enough, so let's build it from the beginning.
+
+    Part 1 — What is a String?
+
+    Suppose we write:
+
+    fn main() {
+        let name = String::from("EFE");
+    }
+
+    There are several things happening here.
+
+    1. "EFE" by itself
+
+    When you write:
+
+    "EFE"
+
+    this is not a String.
+
+    It is a string literal, and its type is:
+
+    &str
+
+    We'll explain &str carefully in a moment.
+
+    For now, just remember:
+
+    "EFE"   →   &str
+    2. String::from("EFE")
+
+    Now:
+
+    let name = String::from("EFE");
+
+    creates an actual String.
+
+    You can think of it as:
+
+    String
+    ┌─────────────────────────────┐
+    │ owns the text "EFE"          │
+    └─────────────────────────────┘
+
+    The important word is owns.
+
+    name is the owner of this String.
+
+    let name = String::from("EFE");
+
+    means approximately:
+
+    name
+    │
+    │ owns
+    ▼
+    "EFE"
+
+    Because String owns its text, it can be changed and grown.
+
+    For example:
+
+    let mut name = String::from("EFE");
+
+    name.push_str(" SHENEM");
+
+    println!("{}", name);
+
+    Output:
+
+    EFE SHENEM
+
+    We can do this because String is an owned, growable string.
+
+    Part 2 — Why does String need to own the text?
+
+    Imagine:
+
+    let mut name = String::from("EFE");
+
+    You can add more text:
+
+    name.push_str(" ABC");
+
+    Now the String contains:
+
+    EFE ABC
+
+    And later:
+
+    name.push_str(" XYZ");
+
+    Now:
+
+    EFE ABC XYZ
+
+    So String needs storage that it can manage and potentially grow.
+
+    Conceptually, you can imagine a String as having something like:
+
+    name
+    │
+    ▼
+    ┌──────────────────────────────┐
+    │ pointer                      │
+    │ length                       │
+    │ capacity                     │
+    └──────────────────────────────┘
+                │
+                ▼
+            memory containing
+            E F E
+
+    You don't need to memorize the internal implementation yet.
+
+    The important point is:
+
+    String owns the memory containing its text.
+
+    Part 3 — Then what is &str?
+
+    Now let's look at:
+
+    let name = "EFE";
+
+    What is the type of name?
+
+    It's:
+
+    &str
+
+    So:
+
+    let name = "EFE";
+
+    does not create an owned String.
+
+    Instead, name is a reference to some text.
+
+    Think of it like this:
+
+    "E F E"
+    ▲
+    │
+    │ reference
+    │
+    name
+
+    name does not own the text.
+
+    It is simply saying:
+
+    "I want to access this text."
+
+    That's why the & is important.
+
+    You already encountered & with normal borrowing:
+
+    let string1 = String::from("EFE");
+
+    let reference = &string1;
+
+    Here:
+
+    string1
+    │
+    │ owns
+    ▼
+    String "EFE"
+    ▲
+    │
+    │ borrows
+    │
+    reference
+
+    Exactly the same basic idea applies to &str:
+
+    &str
+
+    means:
+
+    a reference to a sequence of UTF-8 text.
+
+    Part 4 — Why is "EFE" a &str?
+
+    This is an important point.
+
+    When Rust sees:
+
+    "EFE"
+
+    the text is already part of the compiled program.
+
+    Conceptually:
+
+    Your compiled program
+    ┌─────────────────────────────┐
+    │                             │
+    │   "EFE"                     │
+    │                             │
+    └─────────────────────────────┘
+
+    Then:
+
+    let name = "EFE";
+
+    creates a reference to that text.
+
+    So:
+
+    name
+    │
+    │ &str
+    ▼
+    "E F E"
+
+    name doesn't own those bytes.
+
+    The program itself contains the string literal.
+
+    That's why this works:
+
+    let name = "EFE";
+
+    println!("{}", name);
+
+    But you cannot do:
+
+    let mut name = "EFE";
+
+    name.push_str(" ABC");
+
+    because name is an &str.
+
+    An &str doesn't own a growable buffer.
+
+    Part 5 — The most important comparison
+
+    Look at these two:
+
+    let name1 = String::from("EFE");
+
+    and:
+
+    let name2 = "EFE";
+
+    They look similar, but they are fundamentally different.
+
+    First:
+    let name1 = String::from("EFE");
+
+    Type:
+
+    String
+
+    Conceptually:
+
+    name1
+    │
+    │ OWNS
+    ▼
+    ┌─────────┐
+    │ E F E   │
+    └─────────┘
+    Second:
+    let name2 = "EFE";
+
+    Type:
+
+    &str
+
+    Conceptually:
+
+    name2
+    │
+    │ BORROWS / REFERENCES
+    ▼
+    ┌─────────┐
+    │ E F E   │
+    └─────────┘
+
+    The critical difference:
+
+    String
+    ↓
+    OWNER
+
+    &str
+    ↓
+    BORROWER / VIEW
+    Part 6 — Why do we call &str a "slice"?
+
+    This word can be confusing.
+
+    Suppose we have:
+
+    let name = String::from("ABCDEFG");
+
+    The String owns:
+
+    A B C D E F G
+
+    Now suppose we want only:
+
+    C D E
+
+    We can write:
+
+    let part = &name[2..5];
+
+    Now:
+
+    name
+    │
+    │ owns
+    ▼
+    A B C D E F G
+        └─────┘
+        CDE
+        ▲
+        │
+        │ borrowed slice
+        │
+        part
+
+    part is:
+
+    &str
+
+    So &str can refer to part of a String.
+
+    That's why it's called a string slice.
+
+    A slice is basically:
+
+    "Give me access to this portion of some string."
+
+    Part 7 — A very important distinction
+
+    There are actually two situations where you can have an &str.
+
+    Situation 1 — Entire string literal
+    let name = "EFE";
+
+    Here:
+
+    name: &str
+
+    It refers to the entire literal.
+
+    Situation 2 — Part of a String
+    let name = String::from("ABCDEFG");
+
+    let part = &name[2..5];
+
+    Here:
+
+    name: String
+    part: &str
+
+    name owns all the text.
+
+    part borrows only part of it.
+
+    So:
+
+    String
+    ┌──────────────────────────┐
+    │ A B C D E F G            │
+    └──────────────────────────┘
+        ↑     ↑
+        │     │
+        └─────┘
+        &str
+        "CDE"
+    Part 8 — Why can't &str exist after the String disappears?
+
+    This connects directly to the lifetime discussion you were asking about earlier.
+
+    Look at:
+
+    fn main() {
+        let part;
+
+        {
+            let name = String::from("ABCDEFG");
+
+            part = &name[2..5];
+        }
+
+        println!("{}", part);
+    }
+
+    The problem is:
+
+    Outer scope
+    ────────────────────────────────────────
+
+    part
+    │
+    │ wants to borrow
+    ▼
+
+    Inner scope
+        ┌─────────────────────────────┐
+        │ name = "ABCDEFG"             │
+        │                             │
+        │ part → "CDE"                 │
+        └─────────────────────────────┘
+                ↓
+        inner scope ends
+
+        name is dropped
+                ↓
+        "ABCDEFG" is gone
+
+    Then we try:
+
+    println!("{}", part);
+
+    But part would be referring to something that no longer exists.
+
+    Rust therefore rejects the program.
+
+    This is exactly where lifetimes become relevant.
+
+    But don't worry about lifetimes yet. First make sure this is clear:
+
+    String
+        ↓
+    owns the text
+
+    &str
+        ↓
+    borrows/references text
+    Part 9 — String vs &str with a very simple analogy
+
+    Imagine a book.
+
+    String = the person who owns the book
+
+    &str = someone looking at some pages of the book
+
+    If I own the book:
+
+    String
+    ↓
+    I own the book
+
+    Someone else can look at it:
+
+    &str
+    ↓
+    I am looking at some text
+
+    The person looking at the book doesn't own it.
+
+    And if the owner destroys the book, the person can't continue looking at those pages.
+
+    Again, the analogy is only to understand ownership vs borrowing.
+
+    Part 10 — Now let's put String and &str into a struct
+
+    Now we're ready for structs.
+
+    Suppose we want a person:
+
+    struct Person {
+        name: String,
+    }
+
+    This means:
+
+    Person
+    ┌────────────────────┐
+    │ name: String       │
+    └────────────────────┘
+
+    Let's create one:
+
+    fn main() {
+        let person = Person {
+            name: String::from("EFE"),
+        };
+
+        println!("{}", person.name);
+    }
+
+    Here person.name is a String.
+
+    Therefore:
+
+    person
+    │
+    │ owns
+    ▼
+    String "EFE"
+
+    The Person struct owns the name.
+
+    This is usually very straightforward.
+
+    Part 11 — What if the struct doesn't want to own the String?
+
+    Now imagine we already have:
+
+    let name = String::from("EFE");
+
+    and we want a Person that merely borrows that String.
+
+    We might want:
+
+    struct Person {
+        name: &String,
+    }
+
+    But Rust says:
+
+    No.
+
+    This is where the lifetime syntax appears.
+
+    We have to write:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    Now let's understand every part.
+
+    Part 12 — struct Person<'a>
+
+    Start with:
+
+    struct Person<'a> {
+
+    The:
+
+    'a
+
+    is a lifetime parameter.
+
+    You can think of it as a label that allows us to describe how long the reference inside the struct is valid.
+
+    Then:
+
+    name: &'a String,
+
+    means:
+
+    name is a reference to a String, and that reference has the lifetime represented by 'a.
+
+    So conceptually:
+
+    Person
+    ┌─────────────────────────┐
+    │ name                    │
+    │   │                     │
+    │   │ &'a String           │
+    └───┼─────────────────────┘
+        │
+        │ borrows
+        ▼
+    String "EFE"
+
+    The Person does not own the String.
+
+    The String is owned somewhere else.
+
+    Part 13 — Complete example
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    fn main() {
+        let name = String::from("EFE");
+
+        let person = Person {
+            name: &name,
+        };
+
+        println!("{}", person.name);
+    }
+
+    Let's execute this mentally.
+
+    First:
+
+    let name = String::from("EFE");
+
+    We have:
+
+    name
+    │
+    │ owns
+    ▼
+    String
+    "EFE"
+
+    Then:
+
+    let person = Person {
+        name: &name,
+    };
+
+    We create a reference:
+
+    person.name
+        │
+        │ borrows
+        ▼
+    name
+        │
+        │ owns
+        ▼
+    String "EFE"
+
+    So:
+
+    Person
+    ┌──────────────────┐
+    │ name ────────────┼────┐
+    └──────────────────┘    │
+                            ▼
+                    String "EFE"
+                            ▲
+                            │
+                        owner
+                        variable
+                        `name`
+
+    The important thing:
+
+    person does not own "EFE".
+
+    name still owns it.
+
+    Part 14 — Why does Rust need 'a here?
+
+    Because Rust needs to make sure this cannot happen:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    fn main() {
+        let person;
+
+        {
+            let name = String::from("EFE");
+
+            person = Person {
+                name: &name,
+            };
+        }
+
+        println!("{}", person.name);
+    }
+
+    Look at the scopes:
+
+    main scope
+    ─────────────────────────────────────
+    person
+    │
+    │
+    ▼
+    inner scope
+        ┌───────────────────────┐
+        │ name                   │
+        │   │                   │
+        │   └── Person.name     │
+        │                       │
+        └───────────────────────┘
+                ↓
+            name is dropped
+                ↓
+            Person.name
+            would point to
+            destroyed data
+
+    Rust's lifetime system prevents this.
+
+    The lifetime parameter doesn't keep name alive.
+
+    This is extremely important.
+
+    It doesn't mean:
+
+    'a = keep name alive
+
+    Instead, it means:
+
+    'a = describe/constraint the validity of this reference
+
+    Rust checks that the reference inside Person cannot be used longer than the data it references is valid.
+
+    Part 15 — What if the struct owns the String?
+
+    Then we don't need a lifetime at all.
+
+    Compare:
+
+    Struct owns the String
+    struct Person {
+        name: String,
+    }
+
+    Usage:
+
+    let person = Person {
+        name: String::from("EFE"),
+    };
+
+    Ownership:
+
+    person
+    │
+    │ owns
+    ▼
+    String "EFE"
+
+    No lifetime parameter.
+
+    Struct borrows the String
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    Usage:
+
+    let name = String::from("EFE");
+
+    let person = Person {
+        name: &name,
+    };
+
+    Ownership:
+
+    name
+    │
+    │ owns
+    ▼
+    String "EFE"
+    ▲
+    │
+    │ borrows
+    │
+    person.name
+
+    Because the struct contains a reference, we need to describe that reference's lifetime.
+
+    Part 16 — You will also see &str in structs
+
+    Instead of:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    we can often write:
+
+    struct Person<'a> {
+        name: &'a str,
+    }
+
+    This is very common.
+
+    Here:
+
+    name: &'a str
+
+    means:
+
+    name is a borrowed string slice.
+
+    For example:
+
+    let name = String::from("EFE");
+
+    let person = Person {
+        name: &name,
+    };
+
+    Here:
+
+    name: String
+        owns "EFE"
+
+    person.name: &str
+                borrows "EFE"
+
+    The &str can also borrow a portion:
+
+    let name = String::from("ABCDEFG");
+
+    let person = Person {
+        name: &name[2..5],
+    };
+
+    Then:
+
+    name
+    ┌─────────────────────┐
+    │ A B C D E F G       │
+    └─────────────────────┘
+        ▲
+        │
+        │ person.name
+        │
+        C D E
+
+    person.name is an &str referring to "CDE".
+
+    The picture I want you to remember
+
+    Forget the complicated lifetime syntax for a moment.
+
+    First remember these three things:
+
+    String
+    │
+    └── OWNS text
+
+
+    &String
+    │
+    └── BORROWS an entire String
+
+
+    &str
+    │
+    └── BORROWS text (a string slice)
+
+    And then:
+
+    struct Person {
+        name: String,
+    }
+
+    means:
+
+    Person OWNS the name
+
+    while:
+
+    struct Person<'a> {
+        name: &'a str,
+    }
+
+    means:
+
+    Person BORROWS the name
+
+    And 'a is there because Rust needs to describe the lifetime of that borrowed reference.
+
+    One more important point: &str is generally more flexible than &String for function parameters and struct fields because it 
+    can refer both to a whole String and to a string literal or a substring. That's why you'll see &str very frequently in Rust.
+
+    If this distinction is clear, the next step should be to take one Person<'a> example and trace exactly what happens to name, 
+    person.name, the reference, the scopes, and 'a line by line.
+       */
+
+
+    /************************************************************************************************************
+        Sure. Let's explain only str in a struct, without going back over ownership or unrelated concepts.
+
+    1. Look at this struct
+    struct Person<'a> {
+        name: &'a str,
+    }
+
+    The important part is:
+
+    name: &'a str
+
+    Break it into pieces:
+
+    &'a str
+    │  │
+    │  └── str
+    │
+    └───── reference
+
+    So name is a reference to a string slice.
+
+    2. What is str?
+
+    str is the Rust type representing a string slice.
+
+    You normally don't use a bare str directly. You normally see:
+
+    &str
+
+    For example:
+
+    let name: &str = "EFE";
+
+    Here:
+
+    name
+    │
+    │ &str
+    ▼
+    "E F E"
+
+    name is an &str.
+
+    The & means that we are working with a reference to a str.
+
+    3. Why does the struct say &'a str?
+
+    Because the struct contains a reference.
+
+    struct Person<'a> {
+        name: &'a str,
+    }
+
+    The type of name is:
+
+    &'a str
+
+    You can read this as:
+
+    "name is a reference to a str, and 'a describes the lifetime of that reference."
+
+    The 'a is a lifetime parameter.
+
+    For now, don't think of 'a as a duration or timer. It is simply a name that Rust uses to describe the lifetime relationship 
+    of the reference.
+
+    4. Using the struct
+
+    For example:
+
+    struct Person<'a> {
+        name: &'a str,
+    }
+
+    fn main() {
+        let person = Person {
+            name: "EFE",
+        };
+
+        println!("{}", person.name);
+    }
+
+    The value:
+
+    "EFE"
+
+    has type:
+
+    &str
+
+    So it can be placed into:
+
+    name: &'a str
+
+    The resulting structure is conceptually:
+
+    Person
+    ┌─────────────────┐
+    │ name            │
+    │   │             │
+    │   ▼             │
+    │  "EFE"          │
+    └─────────────────┘
+
+    person.name is an &str.
+
+    5. &str can also refer to part of a String
+
+    This is one of the most important reasons we call it a slice.
+
+    struct Person<'a> {
+        name: &'a str,
+    }
+
+    fn main() {
+        let full_name = String::from("ABCDEFG");
+
+        let person = Person {
+            name: &full_name[2..5],
+        };
+
+        println!("{}", person.name);
+    }
+
+    full_name contains:
+
+    A B C D E F G
+    0 1 2 3 4 5 6
+
+    This:
+
+    &full_name[2..5]
+
+    means:
+
+    C D E
+
+    because 2..5 means:
+
+    start at 2
+    stop before 5
+
+    So:
+
+    full_name
+    ┌─────────────────┐
+    │ A B C D E F G   │
+    │     └─────┘     │
+    │       CDE       │
+    └─────────────────┘
+            ▲
+            │
+    person.name
+        &str
+
+    Therefore &str doesn't necessarily mean "the entire string."
+
+    It can mean:
+
+    a reference to some string data, possibly only a portion of it.
+
+    That's why it's called a string slice.
+
+    6. Why can't we write str directly?
+
+    You might wonder why we don't write:
+
+    struct Person {
+        name: str,
+    }
+
+    instead of:
+
+    struct Person<'a> {
+        name: &'a str,
+    }
+
+    The reason is that str itself has no known fixed size.
+
+    For example, these are different sizes:
+
+    "EFE"
+    "Hello"
+    "Hello, my name is EFE"
+
+    A bare str could represent text of different lengths.
+
+    Rust therefore normally uses a reference:
+
+    &str
+
+    The reference gives us a way to refer to the string slice.
+
+    7. The exact meaning of the struct
+
+    So when you see:
+
+    struct Person<'a> {
+        name: &'a str,
+    }
+
+    read it as:
+
+    Define a Person struct. It has a field called name. That field is a reference to a string slice, and 'a is the lifetime 
+    parameter describing that reference.
+
+    The syntax:
+
+    &'a str
+
+    is simply:
+
+    &       → reference
+    'a      → lifetime parameter
+    str     → string slice type
+
+    And that's all you need to understand about str in this struct before moving deeper into lifetimes.
+     */
 
 
 
+    /************************************************************************************************************
+    Yes. The first one is wrong, and the second one is also wrong, but for different reasons.
 
+    1. First example
+
+    You wrote:
+
+    struct Person<'a> {
+        name: &'a str,
+    }
+
+    fn main() {
+        let string_var = String::from("EFE");
+        let person = Person {
+            name: string_var,
+        };
+
+        println!("{}", person.name);
+    }
+
+    The problem is here:
+
+    name: string_var,
+
+    Your struct says:
+
+    name: &'a str
+
+    So name must receive an &str.
+
+    But:
+
+    string_var
+
+    is a String, not an &str.
+
+    You would need a reference/slice:
+
+    let person = Person {
+        name: &string_var,
+    };
+
+    So this is valid:
+
+    struct Person<'a> {
+        name: &'a str,
+    }
+
+    fn main() {
+        let string_var = String::from("EFE");
+
+        let person = Person {
+            name: &string_var,
+        };
+
+        println!("{}", person.name);
+    }
+
+    The important difference is:
+
+    name: string_var
+
+    vs.
+
+    name: &string_var
+
+    The first gives the struct a String.
+
+    The second gives the struct an &str.
+
+    2. Your second example
+
+    You wrote:
+
+    struct Person<'a> {
+        name: &'a str,
+    }
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    This is wrong because you are defining Person twice.
+
+    Rust doesn't allow:
+
+    struct Person { ... }
+
+    struct Person { ... }
+
+    with the same name.
+
+    You'll get a duplicate-definition error.
+
+    If you want to compare the two types, give them different names:
+
+    struct PersonStr<'a> {
+        name: &'a str,
+    }
+
+    struct PersonString<'a> {
+        name: &'a String,
+    }
+
+    Then:
+
+    fn main() {
+        let person1 = PersonStr {
+            name: "EFE",
+        };
+
+        let string_var = String::from("EFE");
+
+        let person2 = PersonString {
+            name: &string_var,
+        };
+
+        println!("{}", person1.name);
+        println!("{}", person2.name);
+    }
+
+    Both are valid.
+
+    The difference is simply:
+
+    PersonStr
+        name: &str
+            ↑
+        string slice
+
+    PersonString
+        name: &String
+            ↑
+        reference to a String
+
+    And notice this:
+
+    name: "EFE"
+
+    works for &str because "EFE" is an &str.
+
+    But for:
+
+    name: &'a String
+
+    you need an actual String and a reference to it:
+
+    let string_var = String::from("EFE");
+
+    let person = PersonString {
+        name: &string_var,
+    };
+
+    So the three cases are:
+
+    name: &'a str
+
+    → expects an &str
+
+    name: &'a String
+
+    → expects an &String
+
+    name: String
+
+    → expects a String
+
+    That's the key distinction.
+     */
+
+
+
+    /************************************************************************************************************
+     Yes — this one is wrong:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    fn main() {
+        let person = Person {
+            name: "EFE",
+        };
+
+        println!("{}", person.name);
+    }
+
+    The problem is this line:
+
+    name: "EFE",
+
+    Your struct requires:
+
+    name: &'a String
+
+    That means:
+
+    name must be a reference to a String.
+
+    But:
+
+    "EFE"
+
+    is an &str, not an &String.
+
+    So the types don't match:
+
+    Struct requires:    &'a String
+                        ↑
+                        reference to a String
+
+    You provided:       "EFE"
+                        ↑
+                        &str
+    To make it work
+
+    You need an actual String:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    fn main() {
+        let string_var = String::from("EFE");
+
+        let person = Person {
+            name: &string_var,
+        };
+
+        println!("{}", person.name);
+    }
+
+    Now the types match:
+
+    string_var
+        │
+        │ String
+        ▼
+    "EFE"
+        ▲
+        │
+        │ &String
+        │
+    person.name
+
+    Compare the two:
+
+    struct Person<'a> {
+        name: &'a str,
+    }
+
+    can accept:
+
+    name: "EFE"
+
+    because "EFE" is an &str.
+
+    But:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    cannot accept:
+
+    name: "EFE"
+
+    because "EFE" is not an &String.
+      */
+
+
+
+    /************************************************************************************************************
+    Yes, the code is correct. The confusion is between String and &String.
+
+    You are not passing an &str in:
+
+    name: &string_var
+
+    You are passing an &String.
+
+    Let's look at it carefully.
+
+    1. string_var is a String
+    let string_var = String::from("EFE");
+
+    So:
+
+    string_var
+        ↓
+    String
+
+    Its type is:
+
+    String
+    2. What does &string_var mean?
+
+    The & means "take a reference to this value."
+
+    Therefore:
+
+    &string_var
+
+    has type:
+
+    &String
+
+    So:
+
+    string_var       → String
+    &string_var      → &String
+    3. Now compare it with the struct
+
+    Your struct says:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    The type of name is:
+
+    &'a String
+    │    │
+    │    └── the referenced value is a String
+    │
+    └────── reference
+
+    And you're giving it:
+
+    name: &string_var
+
+    whose type is:
+
+    &String
+
+    So they match:
+
+    Expected:   &'a String
+    Given:      &String
+                ────────
+                match
+
+    The 'a doesn't change the fact that the type is &String. It tells Rust about the lifetime of that reference.
+
+    What about &str?
+
+    This is a completely different type:
+
+    &String
+
+    versus:
+
+    &str
+
+    They are not the same type.
+
+    For example:
+
+    let string_var = String::from("EFE");
+
+    let a = &string_var;
+
+    Here:
+
+    a → &String
+
+    But:
+
+    let b = "EFE";
+
+    Here:
+
+    b → &str
+
+    So your original code:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    fn main() {
+        let string_var = String::from("EFE");
+
+        let person = Person {
+            name: &string_var,
+        };
+
+        println!("{}", person.name);
+    }
+
+    is correct because:
+
+    string_var      : String
+    &string_var     : &String
+    person.name     : &'a String
+
+    The important correction is: &string_var is &String, not &str.
+     */
+
+
+
+    /************************************************************************************************************
+     Yes, this one is correct except for the unnecessary <>.
+
+    You should write:
+
+    struct Person {
+        name: String,
+    }
+
+    fn main() {
+        let string_var = String::from("EFE");
+
+        let person = Person {
+            name: string_var,
+        };
+
+        println!("{}", person.name);
+    }
+    Why?
+
+    Your struct says:
+
+    name: String
+
+    So it expects an actual String.
+
+    And:
+
+    let string_var = String::from("EFE");
+
+    creates a String.
+
+    Therefore:
+
+    name: string_var,
+
+    matches perfectly:
+
+    string_var        → String
+                        ↓
+    Person.name       → String
+
+    There is no & here because you are giving the struct the String itself, not a reference to it.
+
+    Compare the two cases:
+
+    // Struct contains a String
+    struct Person {
+        name: String,
+    }
+
+    Then:
+
+    name: string_var
+
+    is correct.
+
+    // Struct contains a reference to a String
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    Then:
+
+    name: &string_var
+
+    is correct.
+
+    So the difference is:
+
+    String
+    ↓
+    actual String
+
+    &String
+    ↓
+    reference to a String
+
+    And <>:
+
+    struct Person<>
+
+    is simply unnecessary here. Since the struct has no generic or lifetime parameters, write:
+
+    struct Person
+      */
+
+
+    /************************************************************************************************************
+    This one is wrong.
+
+    struct Person {
+        name: String,
+    }
+
+    fn main() {
+        let string_var = String::from("EFE");
+
+        let person = Person {
+            name: &string_var,
+        };
+
+        println!("{}", person.name);
+    }
+
+    The problem is here:
+
+    name: &string_var,
+
+    Your struct says:
+
+    name: String
+
+    So Rust expects:
+
+    String
+
+    But &string_var is:
+
+    &String
+
+    Therefore:
+
+    Expected:   String
+    Given:      &String
+
+    They are different types.
+
+    Correct version if the struct owns the String
+
+    Remove &:
+
+    struct Person {
+        name: String,
+    }
+
+    fn main() {
+        let string_var = String::from("EFE");
+
+        let person = Person {
+            name: string_var,
+        };
+
+        println!("{}", person.name);
+    }
+    Correct version if the struct should contain a reference
+
+    Then the struct must say &String and needs a lifetime:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    fn main() {
+        let string_var = String::from("EFE");
+
+        let person = Person {
+            name: &string_var,
+        };
+
+        println!("{}", person.name);
+    }
+
+    So the simple rule is:
+
+    struct says String
+            ↓
+    give it String
+
+    struct says &'a String
+            ↓
+    give it &String
+
+    And specifically:
+
+    name: string_var
+
+    → String
+
+    while:
+
+    name: &string_var
+
+    → &String
+     */
+    println!("-------------------------------------------------------------");
+    println!("-------------------------------------------------------------");
+
+    let user2 = create_user("Abolfazl".to_string());
+    println!("The user2 name is: {}", user2.name);
+    println!("The user2 age is: {}", user2.age);
+    println!("The user2 is active is: {}", user2.is_active);
+    println!("The user2 score is: {}", user2.score);
+
+    println!("-------------------------------------------------------------");
+    println!("-------------------------------------------------------------");
+
+
+    let first_coord = Coordinates(25.8,26.8);
+
+    println!("The latitude is: {}", first_coord.0);
+    println!("The longitude is: {}", first_coord.1);
 
 
 }
