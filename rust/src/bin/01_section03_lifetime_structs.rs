@@ -1,4 +1,27 @@
+// We use Camel Case for creating a structure in rust. 
+// In below struct the User is the name of the struct.
+struct User{
+    name:String,
+    age: i32,
+    is_active:bool,
+    score: f32
+}
+
+
 fn main(){
+
+
+    let user1 = User{
+        name : String::from("EFE"),
+        age : 34,
+        is_active : true,
+        score : 18.83
+    };
+
+    println!("The user1 name is: {}", user1.name);
+    println!("The user1 age is: {}", user1.age);
+    println!("The user1 is active: {}", user1.is_active);
+    println!("The user1 score is: {}", user1.score);
 
     /************************************************************************************************************
     1. Why do we need structs?
@@ -695,6 +718,2724 @@ fn main(){
 
 
 
+    /************************************************************************************************************
+    1. First, remember what ownership means
+
+    Consider:
+
+    let name = String::from("EFE");
+
+    We have:
+
+    name
+    |
+    | OWNS
+    v
+    String
+    |
+    v
+    "EFE"
+
+    name owns the String.
+
+    When name goes out of scope, Rust drops the String.
+
+    For example:
+
+    fn main() {
+        let name = String::from("EFE");
+
+        println!("{}", name);
+    }
+
+    At the end of main:
+
+    name → goes out of scope
+        ↓
+    String → dropped
+        ↓
+    heap memory → released
+
+    So far, no lifetime parameter is necessary.
+
+    2. Now let's say we don't want the struct to own the String
+
+    Suppose we have:
+
+    struct Person {
+        name: String,
+    }
+
+    If we create:
+
+    let name = String::from("EFE");
+
+    let person = Person {
+        name: name,
+    };
+
+    then the situation is:
+
+    name
+    |
+    | ownership MOVES
+    v
+    person.name
+    |
+    | OWNS
+    v
+    "EFE"
+
+    The Person now owns the String.
+
+    After this:
+
+    println!("{}", name);
+
+    would not work because name was moved into the struct.
+
+    3. What if we DON'T want the struct to own the String?
+
+    Maybe we want:
+
+    name
+    |
+    | OWNS
+    v
+    "EFE"
+
+    person
+    |
+    | BORROWS
+    v
+    "EFE"
+
+    In other words:
+
+    name remains the owner, while Person just keeps a reference to it.
+
+    We can write:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    And:
+
+    let name = String::from("EFE");
+
+    let person = Person {
+        name: &name,
+    };
+
+    Now we have:
+
+    name
+    |
+    | OWNS
+    v
+    String
+    |
+    v
+    "EFE"
+    ^
+    |
+    | BORROWS
+    |
+    person.name
+
+    This is the important difference.
+
+    4. What does &String mean here?
+
+    Look at:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    The:
+
+    &String
+
+    means:
+
+    name doesn't contain an owned String. It contains a reference to a String.
+
+    So:
+
+    let person = Person {
+        name: &name,
+    };
+
+    means:
+
+    "Person, here is a reference to my String. You can access it, but you don't own it."
+
+    Conceptually:
+
+    name
+    |
+    | OWNER
+    v
+    +---------+
+    | String  |
+    +---------+
+        |
+        v
+    "EFE"
+        ^
+        |
+        | reference
+        |
+    person.name
+    5. Then what is 'a?
+
+    This is the part that usually confuses beginners.
+
+    You see:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    and wonder:
+
+    "What is 'a? Is it another variable?"
+
+    No.
+
+    'a is not a variable.
+
+    It is a lifetime parameter.
+
+    The easiest way to understand it initially is:
+
+    'a represents the period of time during which the reference is guaranteed to remain valid.
+
+    It does not mean:
+
+    "Keep the String alive for some specific number of seconds."
+
+    It is about the relationship between scopes.
+
+    6. Why does Rust need to care about this?
+
+    Imagine:
+
+    let person;
+
+    {
+        let name = String::from("EFE");
+
+        person = Person {
+            name: &name,
+        };
+    }
+
+    println!("{}", person.name);
+
+    Something is wrong here.
+
+    Let's look at the scopes.
+
+    The outer scope:
+
+    main
+    ┌──────────────────────────────────────┐
+    │                                      │
+    │ let person;                          │
+    │                                      │
+    │   ┌──────────────────────────────┐   │
+    │   │ let name = "EFE";             │   │
+    │   │                              │   │
+    │   │ person borrows name           │   │
+    │   │                              │   │
+    │   └──────────────────────────────┘   │
+    │                                      │
+    │ println!("{}", person.name);         │
+    │                                      │
+    └──────────────────────────────────────┘
+
+    The problem is:
+
+    name
+    ↓
+    created inside inner scope
+    ↓
+    inner scope ends
+    ↓
+    name is destroyed
+
+    But:
+
+    person
+    ↓
+    still exists
+    ↓
+    contains reference to name
+
+    So we'd have:
+
+    person.name
+        |
+        | reference
+        v
+    ????
+
+    The thing that the reference points to no longer exists.
+
+    That's a dangling reference.
+
+    Rust prevents this.
+
+    7. This is what the lifetime parameter helps describe
+
+    When you write:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    you're essentially saying:
+
+    "A Person contains a reference, and that reference must remain valid for the lifetime represented by 'a."
+
+    It doesn't tell Rust:
+
+    "Keep this String alive."
+
+    Instead, it tells Rust:
+
+    "The reference inside this struct cannot outlive the thing it refers to."
+
+    This distinction is extremely important.
+
+    8. Lifetime does NOT control ownership
+
+    This is another very important point.
+
+    Suppose:
+
+    let name = String::from("EFE");
+
+    let person = Person {
+        name: &name,
+    };
+
+    Who owns the String?
+
+    name
+    |
+    | OWNS
+    v
+    "EFE"
+
+    Who borrows it?
+
+    person.name
+    |
+    | BORROWS
+    v
+    "EFE"
+
+    The lifetime 'a doesn't change that.
+
+    It doesn't make person the owner.
+
+    It doesn't extend the life of name.
+
+    It simply describes the validity relationship of the reference.
+
+    9. Think about lifetime as a "validity period"
+
+    For now, you can mentally think:
+
+    'a
+    ↓
+    "How long is this reference valid?"
+
+    Suppose:
+
+    let name = String::from("EFE");
+
+    let person = Person {
+        name: &name,
+    };
+
+    If name lives for this period:
+
+    name:
+    |-----------------------------|
+
+    then the reference inside person must be valid within that period:
+
+    person.name reference:
+    |-----------------------------|
+
+    It cannot continue after name is destroyed.
+
+    10. A much simpler example
+
+    Let's temporarily forget structs.
+
+    Consider:
+
+    let name = String::from("EFE");
+
+    let reference = &name;
+
+    We have:
+
+    name
+    |
+    | OWNS
+    v
+    "EFE"
+    ^
+    |
+    | BORROWS
+    |
+    reference
+
+    The reference reference cannot be valid after name is destroyed.
+
+    Rust therefore tracks the lifetimes of these references.
+
+    For example:
+
+    let reference;
+
+    {
+        let name = String::from("EFE");
+
+        reference = &name;
+    }
+
+    println!("{}", reference);
+
+    Rust rejects this.
+
+    Why?
+
+    Because:
+
+    name
+    ↓
+    destroyed here
+    }
+
+    but:
+
+    reference
+    ↓
+    used here
+    println!
+
+    The reference would be pointing to something that no longer exists.
+
+    11. Now put the same idea into a struct
+
+    Without a reference:
+
+    struct Person {
+        name: String,
+    }
+
+    The struct owns the String.
+
+    With a reference:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    The struct borrows a String.
+
+    So:
+
+    OWNING VERSION
+    ────────────────────────
+
+    Person
+    |
+    +── name: String
+        |
+        └── OWNS "EFE"
+
+
+    BORROWING VERSION
+    ────────────────────────
+
+    Person
+    |
+    +── name: &'a String
+        |
+        └── BORROWS "EFE"
+
+    The 'a is necessary because Rust needs to track how long that borrowed reference can remain valid.
+
+    12. Let's analyze this complete example
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    fn main() {
+        let name = String::from("EFE");
+
+        let person = Person {
+            name: &name,
+        };
+
+        println!("{}", person.name);
+        println!("{}", name);
+    }
+
+    Let's go line by line.
+
+    Step 1
+    struct Person<'a>
+
+    We're defining a struct called Person.
+
+    'a says:
+
+    This struct has a lifetime parameter because it will contain a reference.
+
+    Step 2
+    name: &'a String,
+
+    This says:
+
+    The name field is a reference to a String.
+
+    And 'a describes the lifetime associated with that reference.
+
+    Step 3
+    let name = String::from("EFE");
+
+    Now:
+
+    name
+    |
+    | OWNS
+    v
+    "EFE"
+    Step 4
+    let person = Person {
+        name: &name,
+    };
+
+    We create a Person.
+
+    But instead of giving it:
+
+    name
+
+    we give it:
+
+    &name
+
+    So we're borrowing.
+
+    Now:
+
+    name
+    |
+    | OWNS
+    v
+    "EFE"
+    ^
+    |
+    | BORROWS
+    |
+    person.name
+    Step 5
+    println!("{}", person.name);
+
+    The struct accesses the borrowed String.
+
+    This is allowed.
+
+    Step 6
+    println!("{}", name);
+
+    This is also allowed.
+
+    Why?
+
+    Because person never took ownership.
+
+    name is still the owner.
+
+    13. What happens when person disappears?
+
+    Suppose:
+
+    let name = String::from("EFE");
+
+    let person = Person {
+        name: &name,
+    };
+
+    Eventually person goes out of scope.
+
+    Then:
+
+    person → destroyed
+
+    But:
+
+    name
+    |
+    | STILL OWNS
+    v
+    "EFE"
+
+    The String remains alive.
+
+    Why?
+
+    Because person was only borrowing it.
+
+    14. Compare this with an owning struct
+    Owning:
+    struct Person {
+        name: String,
+    }
+
+    let name = String::from("EFE");
+
+    let person = Person {
+        name: name,
+    };
+
+    Ownership:
+
+    name
+    |
+    X  ownership moved
+
+    person
+    |
+    | OWNS
+    v
+    "EFE"
+    Borrowing:
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    let name = String::from("EFE");
+
+    let person = Person {
+        name: &name,
+    };
+
+    Ownership:
+
+    name
+    |
+    | OWNS
+    v
+    "EFE"
+    ^
+    |
+    | BORROWS
+    |
+    person.name
+
+    That's the fundamental difference.
+
+    15. One more important thing: &str
+
+    In practice, you will often see:
+
+    struct Person<'a> {
+        name: &'a str,
+    }
+
+    rather than:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    Why?
+
+    Because &str is already a borrowed string slice.
+
+    For example:
+
+    let name = String::from("EFE");
+
+    let person = Person {
+        name: &name,
+    };
+
+    Here &name can be used as a string slice reference.
+
+    Conceptually:
+
+    name
+    |
+    | OWNS
+    v
+    String
+    |
+    v
+    "EFE"
+    ^
+    |
+    | &'a str
+    |
+    person.name
+
+    This is often more flexible because the function/struct doesn't need to care whether the string came from a String or a string literal.
+
+    For example:
+
+    struct Person<'a> {
+        name: &'a str,
+    }
+
+    can work with:
+
+    let person1 = Person {
+        name: "EFE",
+    };
+
+    and:
+
+    let name = String::from("EFE");
+
+    let person2 = Person {
+        name: &name,
+    };
+
+    But don't worry too much about this distinction yet. We'll get deeper into String vs &str later.
+
+    16. The most important mental model
+
+    For now, I want you to separate these two concepts in your head:
+
+    Ownership
+
+    Answers:
+
+    Who owns the data?
+
+    String
+    ↑
+    |
+    name
+    OWNER
+    Lifetime
+
+    Answers:
+
+    How long is a reference guaranteed to remain valid?
+
+    name exists
+    |-----------------------|
+
+    reference must be valid
+    |-----------------------|
+
+    So:
+
+    OWNERSHIP
+        ↓
+    Who is responsible for the data?
+
+    LIFETIME
+        ↓
+    How long can this reference safely be used?
+
+    They are related, but they are not the same thing.
+
+    17. And one thing you should NOT conclude
+
+    Don't think:
+
+    "'a means the String lives for 'a."
+
+    That's not correct.
+
+    The String's lifetime is determined by the scope/ownership of the actual String.
+
+    The lifetime parameter describes the reference's validity relationship.
+
+    A useful beginner approximation is:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    Read it as:
+
+    "Person contains a reference to a String, and that reference has some lifetime 'a that must be long enough for every use of the Person that depends on it."
+
+    You don't manually assign a value to 'a. Rust figures out the actual lifetime from how the value is used.
+
+    Finally, connect this to what you've already learned
+
+    You have now encountered three different situations:
+
+    let string1 = String::from("EFE");
+
+    Owner:
+
+    string1
+    |
+    | OWNS
+    v
+    "EFE"
+
+    Then:
+
+    let string2 = string1;
+
+    Ownership moves:
+
+    string1 ──X
+
+    string2 ──→ "EFE"
+                OWNER
+
+    Then:
+
+    let string2 = &string1;
+
+    Borrowing:
+
+    string1 ──→ "EFE"
+                OWNER
+                ↑
+                |
+    string2 ───────┘
+                BORROW
+
+    And finally:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    A struct stores that borrow:
+
+    string1
+    |
+    | OWNS
+    v
+    "EFE"
+    ^
+    |
+    | BORROW
+    |
+    person.name
+
+    The 'a exists because Rust must make sure that:
+
+    person.name
+
+    never remains usable after:
+
+    string1
+
+    has been destroyed.
+
+    Once this is comfortable, then impl and functions/methods on structs become much easier, because you'll encounter things like:
+
+    impl Person {
+        fn print_name(&self) {
+            println!("{}", self.name);
+        }
+    }
+     */
+
+
+    /************************************************************************************************************
+    The most important thing first:
+
+    A lifetime is not something that runs at runtime and does not keep a value alive. It is information Rust's 
+    compiler uses to check that a reference can never be used after the thing it points to has been destroyed.
+
+    Let's build this carefully.
+
+    1. First forget structs completely
+
+    Before talking about a reference inside a struct, let's understand a normal reference.
+
+    Start with:
+
+    fn main() {
+        let name = String::from("EFE");
+
+        let reference = &name;
+
+        println!("{}", reference);
+    }
+
+    There are two variables:
+
+    name
+    |
+    | OWNS
+    v
+    String
+    |
+    v
+    "EFE"
+
+
+    reference
+    |
+    | BORROWS
+    v
+    String
+
+    So:
+
+    name       = owner
+    reference  = borrower
+
+    reference does not own "EFE".
+
+    It simply says:
+
+    "I want to access the String that name owns."
+
+    2. What is the danger with a reference?
+
+    Imagine this:
+
+    fn main() {
+        let reference;
+
+        {
+            let name = String::from("EFE");
+
+            reference = &name;
+        }
+
+        println!("{}", reference);
+    }
+
+    Let's understand the scopes.
+
+    The outer scope is:
+
+    main
+    ┌─────────────────────────────────────────┐
+    │                                         │
+    │ let reference;                          │
+    │                                         │
+    │     ┌─────────────────────────────┐     │
+    │     │                             │     │
+    │     │ let name = String::from...  │     │
+    │     │                             │     │
+    │     │ reference = &name            │     │
+    │     │                             │     │
+    │     └─────────────────────────────┘     │
+    │                                         │
+    │ println!("{}", reference);              │
+    │                                         │
+    └─────────────────────────────────────────┘
+
+    The important thing happens here:
+
+    {
+        let name = String::from("EFE");
+
+        reference = &name;
+    }
+
+    When we reach:
+
+    }
+
+    name is destroyed.
+
+    So:
+
+    Before }:
+
+    name
+    |
+    | OWNS
+    v
+    "EFE"
+    ^
+    |
+    | reference
+    |
+    reference
+
+    After }:
+
+    name → DESTROYED
+
+    reference
+        |
+        | points to something that no longer exists
+        v
+    ????
+
+    Then we try:
+
+    println!("{}", reference);
+
+    That would be using a dangling reference.
+
+    A dangling reference means:
+
+    A reference points to memory/data that is no longer valid.
+
+    Rust's compiler prevents this.
+
+    3. Now where does lifetime come into this?
+
+    Rust needs to reason about something like:
+
+    How long does `name` exist?
+
+    How long does `reference` exist?
+
+    Can `reference` outlive `name`?
+
+    We can visualize the scopes as periods of time:
+
+    name:
+    |----------------------|
+    created                destroyed
+
+
+    reference:
+    |----------------------------------|
+    created                            used
+
+    That's bad.
+
+    The reference is being used after the thing it references is gone.
+
+    Rust wants something like:
+
+    name:
+    |----------------------|
+    created                destroyed
+
+    reference:
+    |------------------|
+    created          last use
+
+    The reference's useful lifetime must fit within the lifetime of the data it references.
+
+    This is what the lifetime system is about.
+
+    4. Very important: lifetime does NOT control anything at runtime
+
+    This is probably where the previous explanation became confusing.
+
+    Suppose you write:
+
+    let name = String::from("EFE");
+    let reference = &name;
+
+    Rust does not create some runtime timer:
+
+    'a = 10 seconds
+
+    No.
+
+    There is no:
+
+    lifetime counter
+    lifetime variable
+    lifetime object
+
+    running inside your program.
+
+    Instead, during compilation, Rust analyzes your code and says:
+
+    "Okay, this reference is used here. The thing it references exists until here. That's safe."
+
+    Or:
+
+    "This reference could be used after the thing it references is destroyed. That's not safe."
+
+    So think:
+
+    LIFETIME
+    ↓
+    compiler checking information
+    ↓
+    NOT runtime data
+
+    This is extremely important.
+
+    5. Now let's introduce the struct
+
+    Suppose:
+
+    struct Person {
+        name: &String,
+    }
+
+    You might think:
+
+    "Why can't I just do this?"
+
+    Because Rust needs to know something about the reference stored inside the struct.
+
+    When the compiler sees:
+
+    name: &String
+
+    it asks:
+
+    "Okay, this Person contains a reference to a String. But what lifetime is associated with that reference?"
+
+    Rust requires you to explicitly describe that relationship in a struct definition.
+
+    So this:
+
+    struct Person {
+        name: &String,
+    }
+
+    produces an error.
+
+    You need:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+    6. What does 'a actually mean here?
+
+    Let's forget the letter a for a moment.
+
+    Imagine we wrote:
+
+    struct Person<'SOME_LIFETIME> {
+        name: &'SOME_LIFETIME String,
+    }
+
+    That isn't valid Rust syntax, but it helps us understand the idea.
+
+    The meaning is approximately:
+
+    "This Person contains a reference to a String, and that reference has some lifetime that I will call 'SOME_LIFETIME."
+
+    Rust uses a short name:
+
+    'a
+
+    So:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    means:
+
+    "Person has a reference field, and I call the lifetime associated with that reference 'a."
+
+    That's all 'a means.
+
+    It isn't a special magical lifetime.
+
+    7. Does it have to be 'a?
+
+    Absolutely not.
+
+    You could write:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    or:
+
+    struct Person<'text> {
+        name: &'text String,
+    }
+
+    or:
+
+    struct Person<'whatever> {
+        name: &'whatever String,
+    }
+
+    The name is chosen by the programmer.
+
+    For example:
+
+    struct Person<'text> {
+        name: &'text String,
+    }
+
+    is perfectly valid.
+
+    And this:
+
+    struct Person<'banana> {
+        name: &'banana String,
+    }
+
+    is syntactically possible too.
+
+    But obviously, we normally choose meaningful names like:
+
+    'a
+    'text
+    'name
+
+    because humans have to read the code.
+
+    So:
+
+    'a
+    'text
+    'name
+
+    are just names for lifetime parameters.
+
+    They don't represent different kinds of lifetimes.
+
+    8. Now let's see how Rust uses it
+
+    Consider:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    Then:
+
+    fn main() {
+        let name = String::from("EFE");
+
+        let person = Person {
+            name: &name,
+        };
+
+        println!("{}", person.name);
+    }
+
+    Let's go through it.
+
+    First:
+
+    let name = String::from("EFE");
+
+    We have:
+
+    name
+    |
+    | OWNS
+    v
+    "EFE"
+
+    Then:
+
+    let person = Person {
+        name: &name,
+    };
+
+    We create:
+
+    person
+    |
+    +---- name
+            |
+            | BORROWS
+            v
+        "EFE"
+
+    The important point is:
+
+    name        → owner
+    person.name → reference
+
+    The struct doesn't own the String.
+
+    9. So what does 'a prevent?
+
+    Here's the important example.
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    fn main() {
+        let person;
+
+        {
+            let name = String::from("EFE");
+
+            person = Person {
+                name: &name,
+            };
+        }
+
+        println!("{}", person.name);
+    }
+
+    Let's follow it.
+
+    Inside the inner scope:
+
+    name
+    |
+    | OWNS
+    v
+    "EFE"
+
+    person.name
+    |
+    | BORROWS
+    v
+    "EFE"
+
+    Then:
+
+    }
+
+    name is destroyed.
+
+    So:
+
+    name → DESTROYED
+
+    But person still exists:
+
+    person
+    |
+    +---- name
+            |
+            | reference
+            v
+        ??????
+
+    Then:
+
+    println!("{}", person.name);
+
+    would try to use that reference.
+
+    Rust sees this situation during compilation and says:
+
+    No. The reference stored inside person cannot remain valid that long.
+
+    That's where the lifetime checking matters.
+
+    10. 'a doesn't "fix" the problem
+
+    This is another critical point.
+
+    You might think:
+
+    "If I write 'a, Rust now knows the lifetime and therefore keeps name alive."
+
+    No!
+
+    Writing:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    does not extend the lifetime of name.
+
+    It doesn't say:
+
+    "Keep name alive."
+
+    Instead it says:
+
+    "The reference stored in Person has some lifetime 'a, and Rust must make sure the actual usage is valid."
+
+    So if you create an invalid situation, 'a doesn't save you.
+
+    Rust still rejects it.
+
+    11. Think of 'a as a label Rust puts on the reference
+
+    This is a useful mental model for now.
+
+    Imagine:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    as saying:
+
+    Person
+    |
+    +---- name
+            |
+            | reference
+            |
+            +---- lifetime label: 'a
+
+    The compiler then tracks the relationship.
+
+    For example:
+
+    String exists:
+    |-------------------------|
+
+    Person's reference:
+    |--------------------|
+
+    Good.
+
+    But:
+
+    String exists:
+    |----------------|
+
+    Person's reference:
+    |--------------------------|
+
+    Bad.
+
+    The second reference could outlive the String.
+
+    12. Now your question about THREE references
+
+    You asked:
+
+    "How can we pass three or more references to a struct?"
+
+    Very easily.
+
+    For example:
+
+    struct Person<'a> {
+        first_name: &'a String,
+        last_name: &'a String,
+        country: &'a String,
+    }
+
+    This struct has three references.
+
+    Now:
+
+    fn main() {
+        let first_name = String::from("Abolfazl");
+        let last_name = String::from("Azadegan");
+        let country = String::from("Iran");
+
+        let person = Person {
+            first_name: &first_name,
+            last_name: &last_name,
+            country: &country,
+        };
+
+        println!("{}", person.first_name);
+        println!("{}", person.last_name);
+        println!("{}", person.country);
+    }
+
+    Now visualize the ownership:
+
+    first_name
+        |
+        | OWNS
+        v
+    "Abolfazl"
+        ^
+        |
+        | BORROWS
+        |
+    person.first_name
+
+
+    last_name
+        |
+        | OWNS
+        v
+    "Azadegan"
+        ^
+        |
+        | BORROWS
+        |
+    person.last_name
+
+
+    country
+        |
+        | OWNS
+        v
+    "Iran"
+        ^
+        |
+        | BORROWS
+        |
+    person.country
+
+    The Person owns none of these strings.
+
+    It has three references.
+
+    13. Why can all three use the same 'a?
+
+    This is an important question.
+
+    We wrote:
+
+    struct Person<'a> {
+        first_name: &'a String,
+        last_name: &'a String,
+        country: &'a String,
+    }
+
+    You might ask:
+
+    "Does 'a mean all three references have exactly the same lifetime?"
+
+    For this simple example, we can think of 'a as saying:
+
+    All three references must be valid for at least the lifetime required by this particular Person value.
+
+    In our example, all three strings live long enough:
+
+    first_name:
+    |--------------------------------|
+
+    last_name:
+    |--------------------------------|
+
+    country:
+    |--------------------------------|
+
+    person:
+    |-------------------------|
+
+    So everything is safe.
+
+    But here's an important subtlety:
+
+    A single lifetime parameter does not necessarily mean the three original variables are created and destroyed at exactly the same time.
+
+    Rust can infer the actual lifetime required for the references based on how they're used.
+
+    For now, think of 'a as a relationship/constraint, not a stopwatch.
+
+    14. Can we give each reference a different lifetime name?
+
+    Yes!
+
+    For example:
+
+    struct Person<'a, 'b, 'c> {
+        first_name: &'a String,
+        last_name: &'b String,
+        country: &'c String,
+    }
+
+    Now there are three lifetime parameters:
+
+    'a → lifetime associated with first_name
+    'b → lifetime associated with last_name
+    'c → lifetime associated with country
+
+    This is legal Rust.
+
+    But you don't automatically need three lifetime parameters just because you have three references.
+
+    Often one lifetime parameter is sufficient.
+
+    15. Why would we ever need different lifetimes?
+
+    Suppose we have:
+
+    first_name exists:
+    |----------------------------|
+
+    last_name exists:
+    |-------------------|
+
+    country exists:
+    |-------------------------|
+
+    They don't necessarily have exactly the same scope.
+
+    You could represent the relationships separately:
+
+    struct Person<'a, 'b, 'c> {
+        first_name: &'a String,
+        last_name: &'b String,
+        country: &'c String,
+    }
+
+    Now Rust can reason about each reference separately.
+
+    But don't make the mistake of thinking:
+
+    'a = 10 seconds
+    'b = 20 seconds
+    'c = 30 seconds
+
+    No.
+
+    They're names representing lifetime relationships determined by the program.
+
+    16. Let's make the different-lifetime example concrete
+
+    Consider:
+
+    struct Person<'a, 'b> {
+        first_name: &'a String,
+        last_name: &'b String,
+    }
+
+    Then:
+
+    fn main() {
+        let first_name = String::from("Abolfazl");
+
+        let person;
+
+        {
+            let last_name = String::from("Azadegan");
+
+            person = Person {
+                first_name: &first_name,
+                last_name: &last_name,
+            };
+
+            println!("{}", person.first_name);
+            println!("{}", person.last_name);
+        }
+    }
+
+    Inside the inner scope:
+
+    first_name:
+    |------------------------------------|
+
+    last_name:
+        |-------------------|
+
+    person:
+        |-------------------|
+
+    Everything is okay inside the inner scope because both references are valid there.
+
+    But if you tried:
+
+    {
+        let last_name = String::from("Azadegan");
+
+        person = Person {
+            first_name: &first_name,
+            last_name: &last_name,
+        };
+    }
+
+    println!("{}", person.first_name);
+    println!("{}", person.last_name);
+
+    the second reference would be invalid because:
+
+    last_name:
+        |----------------|
+                        ↑
+                    destroyed
+
+    while:
+
+    person.last_name:
+        |----------------------|
+
+    would need to remain usable longer.
+
+    Rust rejects the program.
+
+    17. This is why lifetime parameters exist in structs
+
+    Now we can answer your original question:
+
+    Why can't Rust just let me write &String in the struct?
+
+    Because a struct value can potentially live for a different amount of time from the data it references.
+
+    For example:
+
+    Struct:
+    |----------------------------|
+
+    String:
+    |----------------|
+
+    That would create a possible dangling reference.
+
+    Rust therefore makes you express the lifetime relationship:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    And then the compiler checks how you actually use Person.
+
+    18. The lifetime is checked at compile time
+
+    This is perhaps the most important sentence in this whole explanation:
+
+    Lifetimes are primarily a compile-time concept.
+
+    Your compiled program doesn't normally contain a little object called 'a.
+
+    For example:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    doesn't mean the resulting Person contains:
+
+    String pointer
+    String length
+    lifetime = 25 seconds
+
+    No.
+
+    The runtime object is essentially concerned with the reference itself.
+
+    Conceptually:
+
+    Person
+    +------------------+
+    | name reference   |
+    +------------------+
+
+    The 'a is used by the compiler when checking the source code.
+
+    19. This is very similar to your earlier ownership example
+
+    Remember:
+
+    let vector = vec![1, 3, 5, 7];
+
+    check_vector(vector);
+
+    You passed the vector by value:
+
+    vector
+    |
+    | OWNS
+    v
+    Vec
+
+    Then:
+
+    vector
+    |
+    X ownership moved
+
+    vec_val
+    |
+    | OWNS
+    v
+    Vec
+
+    With a reference:
+
+    check_vector(&vector);
+
+    you get:
+
+    vector
+    |
+    | OWNS
+    v
+    Vec
+    ^
+    |
+    | BORROW
+    |
+    function parameter
+
+    The lifetime system is answering an additional question:
+
+    How long is that borrow allowed to remain valid?
+
+    20. Let's connect ownership, borrowing, and lifetime
+
+    These three questions are different:
+
+    Ownership
+    Who owns the data?
+
+    Example:
+
+    let name = String::from("EFE");
+
+    Answer:
+
+    name owns the String
+    Borrowing
+    Who is temporarily allowed to access the data without owning it?
+
+    Example:
+
+    let reference = &name;
+
+    Answer:
+
+    reference borrows the String
+    Lifetime
+    How long can that reference safely remain valid?
+
+    Example:
+
+    name exists:
+    |-----------------------|
+
+    reference:
+    |-------------------|
+
+    The reference must not outlive the data it references.
+
+    21. Now let's look at the simplest possible struct example
+
+    Don't think about complicated lifetimes yet.
+
+    Just understand this:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    Read it from left to right:
+
+    struct
+    ↓
+    I'm defining a struct
+
+    Person
+    ↓
+    Its name is Person
+
+    <'a>
+    ↓
+    This struct has a lifetime parameter named 'a
+
+    name
+    ↓
+    The struct has a field called name
+
+    : &'a String
+    ↓
+    That field contains a reference to a String
+    and that reference is associated with lifetime 'a
+
+    Then:
+
+    let name = String::from("EFE");
+
+    let person = Person {
+        name: &name,
+    };
+
+    means:
+
+    name
+    |
+    | OWNS
+    v
+    "EFE"
+    ^
+    |
+    | BORROW
+    |
+    person.name
+
+    And Rust makes sure that person.name cannot be used after name has been destroyed.
+
+    22. One more thing: String vs &str
+
+    You may have seen this:
+
+    struct Person<'a> {
+        name: &'a str,
+    }
+
+    instead of:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    Don't let this confuse the lifetime concept.
+
+    The lifetime idea is exactly the same.
+
+    &'a str means:
+
+    a reference to a string slice, valid according to lifetime 'a.
+
+    For example:
+
+    let name = String::from("EFE");
+
+    let person = Person {
+        name: &name,
+    };
+
+    The ownership is:
+
+    name
+    |
+    | OWNS
+    v
+    String
+    |
+    v
+    "EFE"
+    ^
+    |
+    | &str
+    |
+    person.name
+
+    The lifetime is still about making sure that:
+
+    person.name
+
+    doesn't outlive:
+
+    name
+    23. And finally, an important correction to a common mental model
+
+    Don't think:
+
+    'a = lifetime of the String
+
+    That's not quite right.
+
+    Think:
+
+    'a = lifetime parameter used to describe
+        how long the reference is valid
+        relative to the data it references
+
+    The String itself has its own lifetime based on when its owner goes out of scope.
+
+    For example:
+
+    String's lifetime:
+    |----------------------|
+
+    The reference might have:
+
+    Reference's lifetime:
+    |------------------|
+
+    The reference is allowed to be shorter.
+
+    But not:
+
+    String's lifetime:
+    |------------------|
+
+    Reference's lifetime:
+    |--------------------------|
+
+    because then the reference would outlive the data.
+
+    24. So here is the complete picture
+
+    Imagine:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    and:
+
+    fn main() {
+        let name = String::from("EFE");
+
+        let person = Person {
+            name: &name,
+        };
+
+        println!("{}", person.name);
+    }
+
+    At runtime, conceptually:
+
+                OWNERSHIP
+                    │
+                    ▼
+    name ───────────────────► String
+                                │
+                                ▼
+                            EFE
+                                ▲
+                                │
+                                │ reference
+                                │
+                        person.name
+
+    At compile time, Rust additionally checks:
+
+    Does the String remain alive
+    for as long as person.name
+    could be used?
+
+    If yes:
+
+                SAFE ✓
+
+    If no:
+
+                ERROR ✗
+                ↓
+        possible dangling
+            reference
+
+    And 'a is the mechanism in the type definition that lets you express this lifetime relationship.
+
+    One last answer to each of your questions
+
+    "What happens if I don't put 'a?"
+
+    If a struct contains a reference, you generally cannot define it simply as:
+
+    struct Person {
+        name: &String,
+    }
+
+    Rust will complain because the reference needs a lifetime parameter in the struct type. You would write:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    "Does 'a control the lifetime?"
+
+    Not in the sense of controlling it at runtime. It is a compile-time constraint/information that Rust uses to verify that references remain valid.
+
+    "Can I have three references?"
+
+    Yes:
+
+    struct Person<'a> {
+        first_name: &'a String,
+        last_name: &'a String,
+        country: &'a String,
+    }
+
+    You can have many.
+
+    "Do all references have to use 'a?"
+
+    No. 'a is just a name.
+
+    You could write:
+
+    struct Person<'text> {
+        name: &'text String,
+    }
+
+    or:
+
+    struct Person<'name> {
+        name: &'name String,
+    }
+
+    "Can I have different lifetime parameters?"
+
+    Yes:
+
+    struct Person<'a, 'b, 'c> {
+        first_name: &'a String,
+        last_name: &'b String,
+        country: &'c String,
+    }
+
+    But you don't necessarily need different ones. One lifetime parameter can be enough when the references can be 
+    described with the same lifetime relationship.
+     */
+
+
+
+
+
+    /************************************************************************************************************
+     the { } in that example are not a function. They create a scope, which is simply a region of code where variables 
+     can exist.
+
+    This is fundamental to understanding Rust ownership and lifetimes, so let's go very slowly.
+
+    1. You've already seen { } before
+
+    Look at a normal Rust function:
+
+    fn main() {
+        let name = String::from("EFE");
+
+        println!("{}", name);
+    }
+
+    You have:
+
+    fn main() {
+        // code
+    }
+
+    The { } after main() define the body of the function.
+
+    So here, the braces are part of the function syntax.
+
+    But Rust also allows us to create { } by themselves:
+
+    fn main() {
+
+        {
+            let name = String::from("EFE");
+        }
+
+    }
+
+    These braces are not defining a function.
+
+    They create a new scope.
+
+    2. What is a scope?
+
+    A scope is simply:
+
+    A region of code where a variable exists and can be used.
+
+    Let's start with:
+
+    fn main() {
+        let name = String::from("EFE");
+
+        println!("{}", name);
+    }
+
+    The entire body of main is a scope:
+
+    fn main() {
+    │
+    │   let name = ...
+    │
+    │   println!("{}", name);
+    │
+    }  ← end of main's scope
+
+    name is created inside this scope.
+
+    Therefore name exists until the end of this scope.
+
+    3. We can create another scope inside main
+
+    For example:
+
+    fn main() {
+
+        let name = String::from("EFE");
+
+        {
+            let age = 34;
+
+            println!("{}", age);
+        }
+
+        println!("{}", name);
+    }
+
+    Now there are two scopes.
+
+    The outer scope:
+
+    fn main() {
+    │
+    │   let name = ...
+    │
+    │   ┌─────────────────────┐
+    │   │                     │
+    │   │   let age = 34;     │
+    │   │                     │
+    │   │   println!("{}",age)│
+    │   │                     │
+    │   └─────────────────────┘
+    │
+    │   println!("{}", name);
+    │
+    }
+
+    The inner { } is called an inner scope.
+
+    4. What happens to age?
+
+    age is created here:
+
+    {
+        let age = 34;
+    }
+
+    So age belongs to this inner scope.
+
+    When Rust reaches:
+
+    }
+
+    the inner scope ends.
+
+    Therefore age is no longer available.
+
+    This won't work:
+
+    fn main() {
+
+        {
+            let age = 34;
+        }
+
+        println!("{}", age); // ❌
+    }
+
+    Why?
+
+    Because age was created inside the inner scope:
+
+    main scope
+    ┌───────────────────────────────────┐
+    │                                   │
+    │   inner scope                     │
+    │   ┌───────────────────────────┐   │
+    │   │ let age = 34;             │   │
+    │   │                           │   │
+    │   └───────────────────────────┘   │
+    │                                   │
+    │   println!("{}", age); ❌         │
+    │                                   │
+    └───────────────────────────────────┘
+
+    age only exists inside the inner { }.
+
+    5. Think of { } as a room
+
+    A simple mental model:
+
+    {
+        // You are inside a room
+    }
+
+    A variable created inside that room belongs to that room:
+
+    {
+        let name = String::from("EFE");
+
+        println!("{}", name); // ✅
+    }
+
+    println!("{}", name); // ❌
+
+    You can use name while you're inside the room.
+
+    Once you leave:
+
+    }
+
+    name is no longer accessible.
+
+    6. Now let's return to your original example
+
+    You asked about:
+
+    fn main() {
+        let reference;
+
+        {
+            let name = String::from("EFE");
+
+            reference = &name;
+        }
+
+        println!("{}", reference);
+    }
+
+    Now we can understand why I deliberately created that inner { }.
+
+    There are two scopes:
+
+    OUTER SCOPE: main
+    ┌───────────────────────────────────────────┐
+    │                                           │
+    │ let reference;                            │
+    │                                           │
+    │   INNER SCOPE                             │
+    │   ┌───────────────────────────────────┐   │
+    │   │                                   │   │
+    │   │ let name = String::from("EFE");   │   │
+    │   │                                   │   │
+    │   │ reference = &name;                │   │
+    │   │                                   │   │
+    │   └───────────────────────────────────┘   │
+    │                                           │
+    │ println!("{}", reference);                │
+    │                                           │
+    └───────────────────────────────────────────┘
+
+    Why did I do this?
+
+    Because I wanted to create a situation where:
+
+    reference
+
+    lives longer than:
+
+    name
+
+    And that is exactly where the lifetime problem becomes visible.
+
+    7. Let's follow name
+
+    Here:
+
+    {
+        let name = String::from("EFE");
+
+    name is created.
+
+    It exists inside this inner scope:
+
+    name's scope
+    ┌──────────────────────────┐
+    │                          │
+    │ let name = "EFE";        │
+    │                          │
+    │ reference = &name;       │
+    │                          │
+    └──────────────────────────┘
+                ↑
+            name dies
+            here
+
+    When Rust reaches:
+
+    }
+
+    the scope ends.
+
+    Therefore name goes out of scope.
+
+    Because name owns the String:
+
+    name
+    |
+    | OWNS
+    v
+    "EFE"
+
+    the String is dropped.
+
+    8. But look at reference
+
+    We created reference outside the inner scope:
+
+    let reference;
+
+    Therefore it belongs to the outer scope.
+
+    Its scope is approximately:
+
+    reference's scope
+    ┌─────────────────────────────────────┐
+    │                                     │
+    │ let reference;                      │
+    │                                     │
+    │   ┌───────────────────────┐         │
+    │   │ name                  │         │
+    │   │                       │         │
+    │   │ reference = &name     │         │
+    │   └───────────────────────┘         │
+    │                                     │
+    │ println!("{}", reference);          │
+    │                                     │
+    └─────────────────────────────────────┘
+
+    So reference potentially exists longer than name.
+
+    9. Now look at the dangerous line
+
+    Inside the inner scope:
+
+    reference = &name;
+
+    We're saying:
+
+    "Make reference point to name."
+
+    At that moment:
+
+    name
+    |
+    | OWNS
+    v
+    "EFE"
+    ^
+    |
+    | reference
+
+    Everything is fine right now.
+
+    But then:
+
+    }
+
+    The inner scope ends.
+
+    name is destroyed.
+
+    So now:
+
+    name → DESTROYED
+
+    But reference still exists:
+
+    reference
+        |
+        | reference to...
+        v
+    ????
+
+    And then:
+
+    println!("{}", reference);
+
+    tries to use it.
+
+    That's why Rust rejects this program.
+
+    10. Why did we need the inner { } to demonstrate this?
+
+    If we wrote:
+
+    fn main() {
+        let name = String::from("EFE");
+
+        let reference = &name;
+
+        println!("{}", reference);
+    }
+
+    there is no problem.
+
+    Both variables are in the same scope:
+
+    main
+    ┌─────────────────────────────┐
+    │                             │
+    │ name                       │
+    │ reference                  │
+    │                             │
+    │ println!("{}", reference)  │
+    │                             │
+    └─────────────────────────────┘
+
+    name remains alive when reference is used.
+
+    So there is no lifetime problem.
+
+    I deliberately added:
+
+    {
+        ...
+    }
+
+    to make name have a shorter scope.
+
+    11. Scope and lifetime are related, but they are NOT exactly the same thing
+
+    This is another important distinction.
+
+    Scope is about where a variable is accessible in the source code.
+
+    For example:
+
+    {
+        let name = String::from("EFE");
+    }
+
+    The scope of name is this block.
+
+    Lifetime is about how long a value/reference is valid.
+
+    For your beginner understanding, you can initially think:
+
+    scope
+    ↓
+    where the variable is accessible
+
+    lifetime
+    ↓
+    how long a reference is valid
+
+    They are closely related, but Rust's actual lifetime analysis is more precise than simply saying "lifetime = braces."
+
+    12. Here's an important example
+
+    Consider:
+
+    fn main() {
+        let name = String::from("EFE");
+
+        {
+            let reference = &name;
+
+            println!("{}", reference);
+        }
+
+        println!("{}", name);
+    }
+
+    This works.
+
+    Why?
+
+    Because:
+
+    name
+    ┌────────────────────────────────────────┐
+    │                                        │
+    │  reference                             │
+    │  ┌──────────────────┐                  │
+    │  │                  │                  │
+    │  └──────────────────┘                  │
+    │                                        │
+    └────────────────────────────────────────┘
+
+    name lives longer than reference.
+
+    So:
+
+    name lifetime:
+    |--------------------------------------|
+
+    reference lifetime:
+        |------------------|
+
+    That's safe.
+
+    13. Reverse the situation
+
+    Now:
+
+    fn main() {
+        let reference;
+
+        {
+            let name = String::from("EFE");
+
+            reference = &name;
+        }
+
+        println!("{}", reference);
+    }
+
+    Now:
+
+    name:
+        |----------------|
+                        ↑
+                    destroyed
+
+
+    reference:
+    |--------------------------|
+
+    The reference potentially lasts longer than the thing it points to.
+
+    That's unsafe.
+
+    So Rust says no.
+
+    14. { } can also be used simply to organize code
+
+    The braces aren't only for demonstrating lifetimes.
+
+    You can deliberately create scopes:
+
+    fn main() {
+
+        {
+            let x = 10;
+            println!("{}", x);
+        }
+
+        {
+            let y = 20;
+            println!("{}", y);
+        }
+
+    }
+
+    Here:
+
+    Outer scope
+    ┌────────────────────────────────────┐
+    │                                    │
+    │  Inner scope 1                     │
+    │  ┌────────────────────┐            │
+    │  │ x = 10             │            │
+    │  └────────────────────┘            │
+    │                                    │
+    │  Inner scope 2                     │
+    │  ┌────────────────────┐            │
+    │  │ y = 20             │            │
+    │  └────────────────────┘            │
+    │                                    │
+    └────────────────────────────────────┘
+
+    x only exists in the first block.
+
+    y only exists in the second block.
+
+    15. There is another useful consequence
+
+    Because ownership is connected to scopes, this:
+
+    {
+        let name = String::from("EFE");
+
+        println!("{}", name);
+    }
+
+    means that when the block ends:
+
+    }
+
+    name goes out of scope.
+
+    Since name owns the String:
+
+    name
+    |
+    | OWNS
+    v
+    String
+    |
+    v
+    "EFE"
+
+    Rust drops the String at the end of that scope.
+
+    So the relationship is:
+
+    scope ends
+        ↓
+    owner goes out of scope
+        ↓
+    owned value is dropped
+
+    This is one of the fundamental reasons scopes are so important for understanding Rust ownership.
+
+    16. Now you can understand our lifetime example
+
+    The entire purpose of this:
+
+    fn main() {
+        let reference;
+
+        {
+            let name = String::from("EFE");
+
+            reference = &name;
+        }
+
+        println!("{}", reference);
+    }
+
+    was to create this situation:
+
+    OUTER SCOPE
+    ┌─────────────────────────────────────────────┐
+    │                                             │
+    │ reference                                   │
+    │                                             │
+    │    INNER SCOPE                              │
+    │    ┌───────────────────────────────┐        │
+    │    │                               │        │
+    │    │ name                          │        │
+    │    │   ↓                           │        │
+    │    │ "EFE"                         │        │
+    │    │   ↑                           │        │
+    │    │ reference = &name             │        │
+    │    │                               │        │
+    │    └───────────────────────────────┘        │
+    │          name destroyed                     │
+    │                                             │
+    │ println!("{}", reference);  ← BAD          │
+    │                                             │
+    └─────────────────────────────────────────────┘
+
+    The compiler detects:
+
+    reference could be used after name has gone away.
+
+    And therefore the program doesn't compile.
+
+    The one thing I want you to take away right now
+
+    When you see:
+
+    {
+        // some code
+    }
+
+    by itself, the { } are creating a block/scope.
+
+    They are not a function.
+
+    A function looks like:
+
+    fn function_name() {
+        // function body
+    }
+
+    A standalone block looks like:
+
+    {
+        // block
+    }
+
+    And a block creates a smaller scope inside its surrounding scope.
+
+    For ownership, this is crucial because:
+
+    VARIABLE GOES OUT OF SCOPE
+            ↓
+    OWNER IS FINISHED
+            ↓
+    OWNED VALUE IS DROPPED
+
+    And for references:
+
+    REFERENCE
+        ↓
+    must not be used after
+        ↓
+    THE DATA IT REFERENCES
+        ↓
+    IS DESTROYED
+
+    This is the problem that lifetime checking solves.
+      */
+
+
+
+
 
 
 
@@ -702,3 +3443,19 @@ fn main(){
 
 
 }
+
+
+fn create_user (username:String) -> User{
+    User {
+        name:username,
+        age: 20,
+        is_active: false,
+        score:19.5
+
+    }
+
+}
+
+
+
+
