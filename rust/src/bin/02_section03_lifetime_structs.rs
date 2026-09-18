@@ -1,3 +1,28 @@
+
+
+struct Square {
+    width: u32,
+    height: u32
+}
+
+//In below line we want to define a method for Square struct so we should specify the name of the Square struct after impl
+impl Square{
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+
+    fn what_is_width(&self) -> u32 {
+        self.width
+    }
+
+    fn change_height (&mut self, new_height:u32) -> u32{
+        self.height = new_height;
+        return self.height
+    }
+
+}
+
+
 fn main(){
 
     /************************************************************************************************************
@@ -2161,12 +2186,1138 @@ fn main(){
 
 
 
+    let sq = Square {
+        width: 10,
+        height: 20
+    };
+
+    
+    println!("The width of sq is: {}", sq.width);
+    println!("The height of sq is: {}", sq.height);
+    println!("The area of the sq is: {}", sq.area());
+    println!("The function returned width is: {}", sq.what_is_width());
+
+    println!("-------------------------------------------------------------");
+    println!("-------------------------------------------------------------");
 
 
+    let mut sq2 = Square {
+        width: 100,
+        height: 200
+    };
 
 
+    println!("The width of sq2 is: {}", sq2.width);
+    println!("The height of sq2 is: {}", sq2.height);
+    println!("The area of the sq2 is: {}", sq2.area());
+    println!("The function returned width is: {}", sq2.what_is_width());
+    println!("The changed height is: {}", sq2.change_height(300));
+    println!("The area of the sq2 after change is: {}", sq2.area());
+    println!("-------------------------------------------------------------");
+    println!("-------------------------------------------------------------");
+
+   
+    /************************************************************************************************************
+    Yes. Let's go through this from the beginning, and especially connect impl, methods, self, &self, and &mut self to what 
+    actually happens when your code runs.
+
+    One small issue first: the code you posted needs to be inside a function such as main(). I'll explain the code exactly 
+    as you wrote it conceptually, but a complete runnable version would have fn main() { ... } around the let and println! 
+    statements.
+
+    1. First, what are we trying to build?
+
+    Your code creates a type called Square.
+
+    The purpose is to represent a rectangle/square-like object that has:
+
+    a width
+    a height
+    a way to calculate its area
+    a way to get its width
+    a way to change its height
+
+    So we start with:
+
+    struct Square {
+        width: u32,
+        height: u32
+    }
+    2. What does struct Square mean?
+    struct Square {
+        width: u32,
+        height: u32
+    }
+
+    This defines a new type called Square.
+
+    It says:
+
+    Every Square value will contain a width and a height, and both will be u32.
+
+    So we can later create an actual Square value:
+
+    let sq = Square {
+        width: 10,
+        height: 20
+    };
+
+    Now we have an actual value:
+
+    sq
+    |
+    ↓
+    Square
+    +----------------+
+    | width  = 10    |
+    | height = 20    |
+    +----------------+
+
+    It's important to distinguish:
+
+    Square
+    ↑
+    the TYPE / blueprint
+
+    sq
+    ↑
+    an actual VALUE of that type
+    3. What is impl Square?
+
+    Now we have:
+
+    impl Square {
+
+    impl means:
+
+    I am going to define functionality associated with this type.
+
+    So:
+
+    impl Square {
+
+    means:
+
+    "Here are some methods/functions that belong to Square."
+
+    Then you have:
+
+    impl Square {
+
+        fn area(&self) -> u32 {
+            ...
+        }
+
+        fn what_is_width(&self) -> u32 {
+            ...
+        }
+
+        fn change_height(&mut self, new_height: u32) -> u32 {
+            ...
+        }
+
+    }
+
+    You can think of it as:
+
+    Square
+    │
+    ├── area()
+    │
+    ├── what_is_width()
+    │
+    └── change_height()
+
+    This is why you write:
+
+    impl Square
+
+    and not:
+
+    impl sq
+
+    Because Square is the type whose functionality you're defining.
+
+    sq doesn't exist yet when the impl block is defined.
+
+    4. First method: area
+
+    Your first method is:
+
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+
+    Let's break this apart.
+
+    fn area
+    fn area
+
+    This defines a function named:
+
+    area
+
+    But because it is inside:
+
+    impl Square
+
+    it is a method of Square.
+
+    That's why later you can write:
+
+    sq.area()
+
+    instead of:
+
+    area(sq)
+    5. What does (&self) mean here?
+
+    You have:
+
+    fn area(&self) -> u32
+
+    The:
+
+    &self
+
+    means:
+
+    "This method wants to access the particular Square that called it, but it doesn't want to take ownership of it."
+
+    Suppose:
+
+    let sq = Square {
+        width: 10,
+        height: 20
+    };
+
+    Then:
+
+    sq.area()
+
+    means that self inside area() refers to the sq value.
+
+    Conceptually:
+
+    sq
+    |
+    ↓
+    Square
+    +----------------+
+    | width  = 10    |
+    | height = 20    |
+    +----------------+
+    ↑
+    |
+    &self
+
+    So inside:
+
+    self.width
+
+    self refers to sq.
+
+    Therefore:
+
+    self.width
+
+    is accessing:
+
+    sq.width
+
+    And:
+
+    self.height
+
+    is accessing:
+
+    sq.height
+    6. What does the body of area() do?
+
+    You wrote:
+
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+
+    The last expression is:
+
+    self.width * self.height
+
+    Rust automatically returns the value of the final expression because there is no semicolon.
+
+    So if:
+
+    self.width  = 10
+    self.height = 20
+
+    then:
+
+    10 × 20 = 200
+
+    Therefore:
+
+    sq.area()
+
+    returns:
+
+    200
+    7. What does -> u32 mean?
+
+    This part:
+
+    -> u32
+
+    means:
+
+    This method returns a u32.
+
+    So:
+
+    fn area(&self) -> u32
+
+    means:
+
+    "The area method receives access to a Square through &self and returns a u32."
+
+    8. Why doesn't area() change sq?
+
+    Because it uses:
+
+    &self
+
+    not:
+
+    &mut self
+
+    The purpose of area() is only to read:
+
+    self.width
+    self.height
+
+    It doesn't modify anything.
+
+    So:
+
+    sq.area();
+
+    doesn't destroy or change sq.
+
+    After:
+
+    sq.area();
+
+    you can still do:
+
+    println!("{}", sq.width);
+
+    because sq still owns the Square.
+
+    9. Second method: what_is_width
+
+    Now:
+
+    fn what_is_width(&self) -> u32 {
+        self.width
+    }
+
+    This method's purpose is very simple:
+
+    Give me the width of this particular Square.
+
+    Again:
+
+    &self
+
+    means the method gets access to the object without taking ownership.
+
+    And:
+
+    self.width
+
+    means:
+
+    Get the width field from the current Square.
+
+    So when you do:
+
+    sq.what_is_width()
+
+    Rust uses sq as the object represented by self.
+
+    Therefore:
+
+    self.width
+
+    is effectively accessing:
+
+    sq.width
+
+    which is:
+
+    10
+
+    So:
+
+    println!(
+        "The function returned width is: {}",
+        sq.what_is_width()
+    );
+
+    prints:
+
+    The function returned width is: 10
+    10. Why do we need what_is_width() if we already have sq.width?
+
+    Excellent question to ask when learning.
+
+    You don't actually need the method in this example.
+
+    You can directly do:
+
+    println!("{}", sq.width);
+
+    because the fields are accessible.
+
+    So:
+
+    sq.width
+
+    and:
+
+    sq.what_is_width()
+
+    both give you 10.
+
+    The method is probably included in this learning example specifically to demonstrate how methods access struct fields 
+    through self.
+
+    In real programs, methods become much more useful when they perform some meaningful operation or enforce some rule.
+
+    11. Now let's look at sq
+
+    You create:
+
+    let sq = Square {
+        width: 10,
+        height: 20
+    };
+
+    Let's follow the next four lines.
+
+    Line 1
+    println!("The width of sq is: {}", sq.width);
+
+    This directly accesses the field.
+
+    sq.width
+
+    means:
+
+    Go to the Square value owned by sq and get its width.
+
+    Result:
+
+    10
+
+    Output:
+
+    The width of sq is: 10
+    Line 2
+    println!("The height of sq is: {}", sq.height);
+
+    Same idea:
+
+    sq.height
+
+    gives:
+
+    20
+
+    Output:
+
+    The height of sq is: 20
+    Line 3
+    println!("The area of the sq is: {}", sq.area());
+
+    Now we're using the method.
+
+    sq.area()
+
+    The method receives &self.
+
+    Inside the method:
+
+    self.width * self.height
+
+    becomes conceptually:
+
+    10 × 20
+
+    so the method returns:
+
+    200
+
+    Output:
+
+    The area of the sq is: 200
+    Line 4
+    println!("The function returned width is: {}", sq.what_is_width());
+
+    The method:
+
+    fn what_is_width(&self) -> u32 {
+        self.width
+    }
+
+    gets the width.
+
+    So:
+
+    sq.what_is_width()
+            ↓
+        10
+
+    Output:
+
+    The function returned width is: 10
+    12. Now we reach the important part: sq2
+
+    You then write:
+
+    let mut sq2 = Square {
+        width: 100,
+        height: 200
+    };
+
+    Now we create another, completely separate Square.
+
+    sq
+    |
+    ↓
+    Square
+    +----------------+
+    | width  = 10    |
+    | height = 20    |
+    +----------------+
 
 
+    sq2
+    |
+    ↓
+    Square
+    +----------------+
+    | width  = 100   |
+    | height = 200   |
+    +----------------+
+
+    These are two different values.
+
+    The methods defined in:
+
+    impl Square
+
+    can be used by both of them.
+
+    That's one of the main benefits of methods.
+
+    13. Why does the same area() method work for both?
+
+    You have only written:
+
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+
+    once.
+
+    But you can call:
+
+    sq.area()
+
+    and:
+
+    sq2.area()
+
+    Why?
+
+    Because self changes depending on which object called the method.
+
+    When:
+
+    sq.area()
+
+    is called:
+
+    self → sq
+
+    So:
+
+    self.width
+
+    means:
+
+    sq.width = 10
+
+    and:
+
+    self.height
+
+    means:
+
+    sq.height = 20
+
+    Therefore:
+
+    10 × 20 = 200
+
+    When:
+
+    sq2.area()
+
+    is called:
+
+    self → sq2
+
+    So:
+
+    self.width
+
+    means:
+
+    sq2.width = 100
+
+    and:
+
+    self.height
+
+    means:
+
+    sq2.height = 200
+
+    Therefore:
+
+    100 × 200 = 20,000
+
+    So self is what allows the same method to work with different objects.
+
+    14. Now the most important method: change_height
+
+    You wrote:
+
+    fn change_height(&mut self, new_height: u32) -> u32 {
+        self.height = new_height;
+        return self.height
+    }
+
+    This method has a different purpose.
+
+    Its purpose is:
+
+    Take the Square that called this method, change its height to the value supplied by the caller, and return the new height.
+
+    Let's look at the pieces.
+
+    15. &mut self
+
+    You wrote:
+
+    &mut self
+
+    This means:
+
+    "I want temporary mutable access to the object that called this method."
+
+    Why do we need mutable access?
+
+    Because this line changes the object:
+
+    self.height = new_height;
+
+    We're changing:
+
+    height
+
+    from one value to another.
+
+    For example:
+
+    BEFORE:
+
+    sq2
+    +----------------+
+    | width  = 100   |
+    | height = 200   |
+    +----------------+
+
+    AFTER:
+
+    sq2
+    +----------------+
+    | width  = 100   |
+    | height = 300   |
+    +----------------+
+
+    That's why we need:
+
+    &mut self
+
+    instead of:
+
+    &self
+    16. Why is sq2 declared with mut?
+
+    Look at:
+
+    let mut sq2 = Square {
+        width: 100,
+        height: 200
+    };
+
+    The mut is necessary because we're going to modify the value.
+
+    Without it:
+
+    let sq2 = Square {
+        width: 100,
+        height: 200
+    };
+
+    then trying to call a method requiring:
+
+    &mut self
+
+    would cause an error.
+
+    You can think of it as:
+
+    let mut sq2
+        ↑
+    "sq2 is allowed to be modified"
+    17. What is new_height?
+
+    The method has:
+
+    fn change_height(&mut self, new_height: u32) -> u32
+
+    There are actually two parameters here:
+
+    &mut self
+        ↑
+    special method receiver
+
+
+    new_height: u32
+        ↑
+    ordinary parameter
+
+    When you call:
+
+    sq2.change_height(300)
+
+    Rust gives:
+
+    self        → sq2
+    new_height  → 300
+
+    So inside the method:
+
+    self.height = new_height;
+
+    means:
+
+    sq2.height = 300;
+    18. Follow change_height(300) step by step
+
+    Before the call:
+
+    sq2
+    +----------------+
+    | width  = 100   |
+    | height = 200   |
+    +----------------+
+
+    You call:
+
+    sq2.change_height(300)
+
+    The method receives:
+
+    self       → mutable access to sq2
+    new_height → 300
+
+    Then it executes:
+
+    self.height = new_height;
+
+    which means:
+
+    sq2.height = 300
+
+    Now:
+
+    sq2
+    +----------------+
+    | width  = 100   |
+    | height = 300   |
+    +----------------+
+    19. What does return self.height do?
+
+    After changing the height, your method has:
+
+    return self.height
+
+    At this moment:
+
+    self.height = 300
+
+    So:
+
+    return self.height
+
+    returns:
+
+    300
+
+    Therefore:
+
+    sq2.change_height(300)
+
+    returns:
+
+    300
+
+    This is why:
+
+    println!("The changed height is: {}", sq2.change_height(300));
+
+    prints:
+
+    The changed height is: 300
+
+    But there is something important happening here:
+
+    the method does two things at once.
+
+    It:
+
+    changes sq2.height
+    returns the new height
+    20. After change_height, sq2 has really changed
+
+    This is very important.
+
+    When you write:
+
+    println!("The changed height is: {}", sq2.change_height(300));
+
+    the 300 printed isn't just some temporary result.
+
+    The actual sq2 has changed.
+
+    Before:
+
+    sq2
+    +----------------+
+    | width  = 100   |
+    | height = 200   |
+    +----------------+
+
+    After:
+
+    sq2.change_height(300);
+
+    the actual object is:
+
+    sq2
+    +----------------+
+    | width  = 100   |
+    | height = 300   |
+    +----------------+
+
+    So when you subsequently execute:
+
+    sq2.area()
+
+    it uses:
+
+    width  = 100
+    height = 300
+
+    Therefore:
+
+    100 × 300 = 30,000
+    21. So your last line
+    println!("The area of the sq2 after change is: {}", sq2.area());
+
+    calls:
+
+    sq2.area()
+
+    The area method is:
+
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+
+    This time:
+
+    self → sq2
+
+    and sq2 now contains:
+
+    width  = 100
+    height = 300
+
+    Therefore:
+
+    self.width * self.height
+        ↓           ↓
+        100 ×       300
+                ↓
+            30,000
+
+    Output:
+
+    The area of the sq2 after change is: 30000
+    22. One complete execution of sq2
+
+    Let's put the entire process together.
+
+    You create:
+
+    let mut sq2 = Square {
+        width: 100,
+        height: 200
+    };
+
+    State:
+
+    sq2
+    +----------------+
+    | width  = 100   |
+    | height = 200   |
+    +----------------+
+
+    Then:
+
+    sq2.width
+
+    gives:
+
+    100
+
+    Then:
+
+    sq2.height
+
+    gives:
+
+    200
+
+    Then:
+
+    sq2.area()
+
+    Inside area():
+
+    self → sq2
+
+    self.width  → 100
+    self.height → 200
+
+    100 × 200 = 20,000
+
+    Then:
+
+    sq2.what_is_width()
+
+    Inside:
+
+    self → sq2
+
+    self.width → 100
+
+    returns:
+
+    100
+
+    Then:
+
+    sq2.change_height(300)
+
+    Inside:
+
+    self       → sq2
+    new_height → 300
+
+    Execute:
+
+    self.height = new_height;
+
+    Therefore:
+
+    sq2.height = 300
+
+    Then:
+
+    return self.height
+
+    returns:
+
+    300
+
+    Now sq2 is:
+
+    sq2
+    +----------------+
+    | width  = 100   |
+    | height = 300   |
+    +----------------+
+
+    Finally:
+
+    sq2.area()
+
+    does:
+
+    100 × 300 = 30,000
+    23. Now look at the three self forms in YOUR code
+
+    Your code gives a very good example of the three forms we've been discussing.
+
+    First:
+    fn area(&self) -> u32
+
+    Purpose:
+
+    I only need to read the Square to calculate its area.
+
+    Therefore:
+
+    &self
+    ↓
+    borrow/read
+    Second:
+    fn what_is_width(&self) -> u32
+
+    Purpose:
+
+    I only need to read the width.
+
+    Therefore:
+
+    &self
+    ↓
+    borrow/read
+    Third:
+    fn change_height(&mut self, new_height: u32) -> u32
+
+    Purpose:
+
+    I need to modify the Square's height.
+
+    Therefore:
+
+    &mut self
+    ↓
+    borrow + modify
+
+    Notice that your code doesn't have self by itself.
+
+    It has:
+
+    &self
+
+    and:
+
+    &mut self
+
+    So your example demonstrates the first two forms, but not the ownership-taking form:
+
+    self
+
+    That third form would look like:
+
+    impl Square {
+        fn destroy(self) {
+            println!("The square had width {}", self.width);
+        }
+    }
+
+    Then:
+
+    sq2.destroy();
+
+    would move ownership of the Square into self.
+
+    That's fundamentally different from your area() and change_height() methods.
+
+    24. The whole impl block in one picture
+
+    Your code can now be understood like this:
+
+                        Square TYPE
+                            │
+                ┌─────────┴─────────┐
+                │                   │
+            struct definition      impl Square
+                │                   │
+                │          ┌────────┼─────────┐
+                │          │        │         │
+                │        area()   what...   change...
+                │          │        │         │
+                │        &self    &self    &mut self
+                │          │        │         │
+                │          ↓        ↓         ↓
+                │        READ     READ      MODIFY
+                │
+                ↓
+            actual values
+            │         │
+            ↓         ↓
+            sq        sq2
+            │         │
+            │         │
+        width=10   width=100
+        height=20  height=200
+
+    And the most important thing to understand about self from this example is:
+
+    sq.area()
+        ↓
+    self = sq
+
+
+    sq2.area()
+        ↓
+    self = sq2
+
+
+    sq2.change_height(300)
+        ↓
+    self = sq2
+    new_height = 300
+
+    So self is what makes a method operate on the particular object that called it.
+
+    And the & or &mut determines how the method gets access to that object:
+
+    &self
+    ↓
+    access without taking ownership
+
+    &mut self
+    ↓
+    mutable access without taking ownership
+
+    self
+    ↓
+    take ownership
+
+    That is the central idea behind the code you posted.
+    
+     */
 
 
 
