@@ -3319,8 +3319,245 @@ fn main(){
     
      */
 
+    /************************************************************************************************************
+    Exactly. That is correct. There is one small wording improvement that will make the reason clearer.
+
+    You have one Square type:
+
+    struct Square {
+        width: u32,
+        height: u32,
+    }
+
+    Then you create two different values from that type:
+
+    let sq = Square {
+        width: 10,
+        height: 20,
+    };
+
+    let mut sq2 = Square {
+        width: 100,
+        height: 200,
+    };
+
+    So:
+
+    sq
+    +----------------+
+    | width  = 10    |
+    | height = 20    |
+    +----------------+
+        ↑
+    immutable
+
+
+    sq2
+    +----------------+
+    | width  = 100   |
+    | height = 200   |
+    +----------------+
+        ↑
+    mutable
+
+    Now look at your method:
+
+    fn change_height(&mut self, new_height: u32) -> u32 {
+        self.height = new_height;
+        self.height
+    }
+
+    The important part is:
+
+    &mut self
+
+    It says:
+
+    "I need mutable access to the particular Square that calls this method."
+
+    With sq
+
+    You have:
+
+    let sq = Square {
+        width: 10,
+        height: 20,
+    };
+
+    sq is immutable.
+
+    So this:
+
+    sq.change_height(30);
+
+    doesn't work.
+
+    Why?
+
+    Because calling change_height() requires Rust to give the method a mutable reference to sq:
+
+    sq
+    ↓
+    &mut sq
+
+    But Rust cannot create &mut sq because you declared:
+
+    let sq
+
+    instead of:
+
+    let mut sq
+
+    In other words:
+
+    let sq
+    ↓
+    "I don't allow this value to be modified"
+
+
+    change_height()
+    ↓
+    "I need permission to modify this value"
+
+                ↓
+
+            ❌ conflict
+    With sq2
+
+    You wrote:
+
+    let mut sq2 = Square {
+        width: 100,
+        height: 200,
+    };
+
+    Now sq2 is mutable.
+
+    Therefore:
+
+    sq2.change_height(300);
+
+    is allowed.
+
+    The process is conceptually:
+
+    sq2
+    ↓
+    &mut sq2
+    ↓
+    change_height()
+    ↓
+    self
+
+    Inside the method:
+
+    self.height = new_height;
+
+    Since:
+
+    self → sq2
+
+    this effectively modifies:
+
+    sq2.height = 300;
+
+    So:
+
+    BEFORE
+
+    sq2
+    +----------------+
+    | width  = 100   |
+    | height = 200   |
+    +----------------+
+
+
+            change_height(300)
+                    ↓
+
+
+    AFTER
+
+    sq2
+    +----------------+
+    | width  = 100   |
+    | height = 300   |
+    +----------------+
+    One very important distinction
+
+    The struct itself isn't immutable.
+
+    This:
+
+    struct Square {
+        width: u32,
+        height: u32,
+    }
+
+    doesn't say that Square objects are immutable.
+
+    Instead, the particular variable/binding can be immutable or mutable:
+
+    let sq = Square { ... };
+
+    means this particular binding is immutable.
+
+    While:
+
+    let mut sq2 = Square { ... };
+
+    means this particular binding is mutable.
+
+    That's why you can have:
+
+    let sq = Square {
+        width: 10,
+        height: 20,
+    };
+
+    let mut sq2 = Square {
+        width: 100,
+        height: 200,
+    };
+
+    even though both are the exact same type:
+
+                Square TYPE
+                    │
+            ┌───────┴───────┐
+            ↓               ↓
+            sq              sq2
+        immutable         mutable
+
+    And consequently:
+
+    sq.area();                 // ✅
+    sq.what_is_width();        // ✅
+    sq.change_height(30);      // ❌
+
+    while:
+
+    sq2.area();                // ✅
+    sq2.what_is_width();       // ✅
+    sq2.change_height(300);    // ✅
+
+    The reason area() and what_is_width() work on both is that they require only:
+
+    &self
+
+    while change_height() requires:
+
+    &mut self
+
+    So you've now connected mut on the variable with &mut self in the method, which is a very important Rust concept.
+     */
 
 
 
 
+
+
+
+
+     
 }
