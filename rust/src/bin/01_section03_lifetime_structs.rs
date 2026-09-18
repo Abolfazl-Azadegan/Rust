@@ -13,8 +13,8 @@ struct User{
 struct Coordinates(f64,f64);
 
 
-
-struct UnitStruct;
+// Below line is unit struct example
+//struct UnitStruct;
 
 
 fn main(){
