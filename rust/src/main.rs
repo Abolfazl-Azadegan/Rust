@@ -332,7 +332,7 @@ fn main() {
     Because byte is a u8. You can also print it as hexadecimal:*/
 
     let byte = b'A';
-    println!("The Hex format of the varibale byte is: {:x}", byte);
+    println!("The Hex format of the varibale byte is: {:x}", byte); // The :x will cause the Hex format to print out
     println!("The Decimal format of the varibale byte is: {}", byte);
 
     let _var_float_64 = 2.5; //The default variable size is 64 bit
@@ -451,6 +451,8 @@ fn main() {
     A Rust tuple has a fixed number of elements, and that number is part of the tuple's type.
     */
 
+    //Here we have &str in the definition of the tuple because we are passing the first two value to the tuple with 
+    // literal strings not the String. EFE and Hi are literal strings which the owenership of them is borrowed by the tuple
     let new_tup = ("EFE", "Hi", 34, 2.5);
     println!("The username is: {}", new_tup.0);
     println!("The user message is: {}", new_tup.1);
@@ -534,7 +536,7 @@ fn main() {
 
 
     /************************************************************************************************************
-    This is wrong because the way we have defined the arrays made them immutable. To make the mutable we should use mut 
+    This is wrong because the way we have defined the arrays made them immutable. To make the array mutable we should use mut 
     before the variable definition.
 
     let array_2[0] = 100;
