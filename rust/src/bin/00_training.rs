@@ -22,6 +22,941 @@ fn largest_value_char (list: &[char]) -> char {
 }
 
 
+fn largest_value_generics_ref<T: PartialOrd>(list: &[T]) -> &T {
+    let mut largest = &list[0];
+
+    for item in list {
+        if item > largest {
+            largest = item;
+        }
+    }
+
+    largest
+}
+
+    /*
+    Let's explain exactly what this function does, especially the parts that are different from your previous Copy version.
+
+    fn largest_value_generics_ref<T: PartialOrd>(list: &[T]) -> &T {
+        let mut largest = &list[0];
+
+        for item in list {
+            if item > largest {
+                largest = item;
+            }
+        }
+
+        largest
+    }
+
+    The key idea is:
+
+    This function finds the largest element, but instead of returning a copy of that element, it returns a 
+    reference to the element that is already inside the original collection.
+
+    That's why we don't need T: Copy.
+
+    1. The function parameter
+    list: &[T]
+
+    There are two important parts.
+
+    T
+
+    T is a generic type.
+
+    It means:
+
+    "I don't know what type the elements are yet."
+
+    It could be:
+
+    i32
+
+    or:
+
+    char
+
+    or:
+
+    String
+
+    etc.
+
+    [T]
+
+    This means:
+
+    a slice containing elements of type T.
+
+    So:
+
+    &[T]
+
+    means:
+
+    a reference to a slice of T.
+
+    For example, if you call:
+
+    let numbers = vec![10, 50, 20];
+
+    largest_value_generics_ref(&numbers);
+
+    then Rust determines:
+
+    T = i32
+
+    so the function parameter becomes:
+
+    list: &[i32]
+
+    If you call:
+
+    let letters = vec!['a', 'z', 'c'];
+
+    largest_value_generics_ref(&letters);
+
+    then:
+
+    T = char
+
+    so the parameter becomes:
+
+    list: &[char]
+
+    If you call:
+
+    let words = vec![
+        String::from("apple"),
+        String::from("banana"),
+        String::from("orange"),
+    ];
+
+    largest_value_generics_ref(&words);
+
+    then:
+
+    T = String
+
+    so the parameter becomes:
+
+    list: &[String]
+
+    This is possible even though String isn't Copy.
+
+    2. What does T: PartialOrd mean?
+
+    This:
+
+    T: PartialOrd
+
+    means:
+
+    The type T must support ordering comparisons.
+
+    We need this because later we have:
+
+    if item > largest
+
+    Rust needs to know that T supports >.
+
+    For example, i32 supports it:
+
+    10 > 5
+
+    char supports it:
+
+    'z' > 'a'
+
+    And String supports lexicographical comparison:
+
+    String::from("orange") > String::from("apple")
+
+    So String satisfies PartialOrd.
+
+    3. The return type
+
+    Now look at:
+
+    -> &T
+
+    This is very important.
+
+    It says:
+
+    The function returns a reference to a T, not a T itself.
+
+    Compare these:
+
+    -> T
+
+    means:
+
+    Return an actual T.
+
+    While:
+
+    -> &T
+
+    means:
+
+    Return a reference to a T.
+
+    This is exactly what allows us to work with String.
+
+    4. Now the first line inside the function
+    let mut largest = &list[0];
+
+    Suppose we called:
+
+    let words = vec![
+        String::from("apple"),
+        String::from("banana"),
+        String::from("orange"),
+    ];
+
+    let result = largest_value_generics_ref(&words);
+
+    Here:
+
+    T = String
+
+    Therefore:
+
+    list: &[String]
+
+    Now:
+
+    list[0]
+
+    refers to the first String:
+
+    apple
+
+    But we don't want to take ownership of that String.
+
+    Instead:
+
+    &list[0]
+
+    means:
+
+    Give me a reference to the first String.
+
+    Therefore:
+
+    largest
+
+    has type:
+
+    &String
+
+    Notice the mut:
+
+    let mut largest
+
+    This does not mean we are going to modify the String.
+
+    It means we are going to change which String largest refers to.
+
+    For example, initially:
+
+    largest = reference to "apple"
+
+    Later, we might do:
+
+    largest = reference to "orange"
+
+    We aren't modifying "apple" or "orange".
+
+    We're simply changing the reference stored in the variable largest.
+
+    5. The for loop
+    for item in list {
+
+    Remember that:
+
+    list: &[T]
+
+    is a slice.
+
+    When you iterate over a slice by doing:
+
+    for item in list
+
+    each item is a reference to a T.
+
+    Therefore:
+
+    item: &T
+
+    For our String example:
+
+    item: &String
+
+    For an i32 example:
+
+    item: &i32
+
+    For a char example:
+
+    item: &char
+    6. The comparison
+
+    Now we reach:
+
+    if item > largest {
+
+    At this point both variables are references.
+
+    For example, with String:
+
+    item: &String
+    largest: &String
+
+    So you're essentially asking Rust:
+
+    Compare the String that item refers to with the String that largest refers to.
+
+    Rust's comparison machinery can compare these references based on the values they refer to.
+
+    So if:
+
+    item refers to "orange"
+    largest refers to "banana"
+
+    then:
+
+    item > largest
+
+    compares:
+
+    "orange" > "banana"
+
+    which is true.
+
+    7. This line is extremely important
+    largest = item;
+
+    Remember:
+
+    largest: &T
+    item: &T
+
+    Therefore, we're doing:
+
+    &T = &T
+
+    We are not copying the actual T.
+
+    We're simply making largest refer to the same element that item refers to.
+
+    This is why String works.
+
+    We don't need to do:
+
+    largest = item.clone();
+
+    and we don't need:
+
+    T: Copy
+
+    We're never trying to copy the String.
+
+    8. Let's execute it with Strings
+
+    Consider:
+
+    let words = vec![
+        String::from("apple"),
+        String::from("banana"),
+        String::from("orange"),
+    ];
+
+    let result = largest_value_generics_ref(&words);
+
+    Initially:
+
+    let mut largest = &list[0];
+
+    So:
+
+    largest refers to "apple"
+
+    First loop iteration:
+
+    item
+
+    refers to:
+
+    "apple"
+
+    We compare:
+
+    "apple" > "apple"
+
+    False.
+
+    Next iteration:
+
+    item refers to "banana"
+    largest refers to "apple"
+
+    Compare:
+
+    "banana" > "apple"
+
+    True.
+
+    So:
+
+    largest = item;
+
+    Now largest refers to "banana".
+
+    Next iteration:
+
+    item refers to "orange"
+    largest refers to "banana"
+
+    Compare:
+
+    "orange" > "banana"
+
+    True.
+
+    So:
+
+    largest = item;
+
+    Now largest refers to "orange".
+
+    Finally:
+
+    largest
+
+    is returned.
+
+    But remember the return type:
+
+    -> &T
+
+    So we're returning:
+
+    &String
+
+    a reference to the "orange" String that already exists inside words.
+
+    We didn't create another String.
+
+    9. Why doesn't the function return T?
+
+    Compare it with your previous function:
+
+    fn largestvaluegenerics<T: Copy + PartialOrd>(list: &[T]) -> T
+
+    That function needs to return an actual T.
+
+    Therefore, when T = String, there is a problem because String isn't Copy.
+
+    The new function instead says:
+
+    fn largest_value_generics_ref<T: PartialOrd>(list: &[T]) -> &T
+
+    It returns a reference.
+
+    Therefore it doesn't need to copy the T.
+
+    That's the fundamental difference:
+
+    -> T
+
+    means:
+
+    "Give the caller the actual value."
+
+    while:
+
+    -> &T
+
+    means:
+
+    "Give the caller a reference to the value that already exists."
+
+    One final thing: why is this safe?
+
+    Because the returned reference points into list, and list itself is borrowed from the caller.
+
+    Rust makes sure the returned reference cannot outlive the data it points to.
+
+    For example:
+
+    let words = vec![
+        String::from("apple"),
+        String::from("banana"),
+        String::from("orange"),
+    ];
+
+    let result = largest_value_generics_ref(&words);
+
+    println!("{}", result);
+
+    This is fine because words is still alive when result is used.
+
+    But you can't use the returned reference after the original words has been destroyed.
+
+    So this function is essentially saying:
+
+    "Give me a borrowed collection of comparable things, and I'll give you a reference to whichever element is largest. 
+    I won't take ownership or copy the element."
+     */
+
+
+
+
+    /*
+    Yes. These are exactly the three things that are worth clarifying. Let's take them one at a time.
+
+    1. How can String be compared with another String?
+
+    Rust's String type implements a trait called PartialOrd.
+
+    That means Rust provides rules for expressions such as:
+
+    string1 > string2
+    string1 < string2
+    string1 >= string2
+    string1 <= string2
+
+    For String, the comparison is lexicographical. In simple terms, Rust compares the characters/bytes from the 
+    beginning until it finds a difference.
+
+    For example:
+
+    let first = String::from("apple");
+    let second = String::from("banana");
+
+    println!("{}", first < second);
+
+    This prints:
+
+    true
+
+    because "apple" comes before "banana" alphabetically.
+
+    Another example:
+
+    let first = String::from("banana");
+    let second = String::from("apple");
+
+    println!("{}", first > second);
+
+    prints:
+
+    true
+
+    because "banana" comes after "apple".
+
+    So in your function:
+
+    if item > largest {
+
+    if:
+
+    item: &String
+    largest: &String
+
+    Rust compares the Strings being referred to.
+
+    For example, if item refers to:
+
+    "orange"
+
+    and largest refers to:
+
+    "banana"
+
+    then the comparison effectively asks:
+
+    "orange" > "banana"
+
+    which is true.
+
+    This is possible because String implements PartialOrd.
+
+    2. Is &list[0] a reference to a reference?
+
+    No. This is the important part.
+
+    You have:
+
+    list: &[T]
+
+    This means:
+
+    list is a reference to a slice of T.
+
+    Now look at:
+
+    list[0]
+
+    This accesses the first element of the slice.
+
+    It does not give you another reference to the slice.
+
+    For example, suppose:
+
+    let words = vec![
+        String::from("apple"),
+        String::from("banana"),
+        String::from("orange"),
+    ];
+
+    and you pass:
+
+    &words
+
+    to the function.
+
+    Inside the function:
+
+    list: &[String]
+
+    Then:
+
+    list[0]
+
+    means:
+
+    Give me the first element of the slice.
+
+    So conceptually, it is the first String:
+
+    "apple"
+
+    Now you write:
+
+    &list[0]
+
+    The & means:
+
+    Give me a reference to that first element.
+
+    Therefore:
+
+    &list[0]
+
+    has type:
+
+    &String
+
+    It is not:
+
+    &&String
+
+    The important distinction is:
+
+    list
+
+    is:
+
+    &[String]
+
+    while:
+
+    list[0]
+
+    is the first String element, and:
+
+    &list[0]
+
+    is a reference to that first String:
+
+    &String
+
+    So &list[0] means:
+
+    "Take the first element of the slice, and give me a reference to that element."
+
+    It does not mean:
+
+    "Take the reference list and create another reference to that reference."
+
+    3. What happens when we do largest = item?
+
+    This is probably the most important part.
+
+    Remember:
+
+    for item in list {
+
+    Because list is:
+
+    &[T]
+
+    each item is:
+
+    &T
+
+    And:
+
+    let mut largest = &list[0];
+
+    also gives:
+
+    largest: &T
+
+    Therefore this:
+
+    largest = item;
+
+    is essentially:
+
+    &T = &T
+
+    We are not moving the actual T.
+
+    We are only copying the reference.
+
+    Let's use your String example.
+
+    Suppose the collection contains:
+
+    let words = vec![
+        String::from("apple"),
+        String::from("banana"),
+        String::from("orange"),
+    ];
+
+    Initially:
+
+    let mut largest = &list[0];
+
+    so largest is a reference to the "apple" String.
+
+    Then the loop reaches "banana":
+
+    item
+
+    is a reference to "banana".
+
+    When we do:
+
+    largest = item;
+
+    we are saying:
+
+    "Change largest so that it now refers to the String that item refers to."
+
+    The "apple" String is not moved.
+
+    The "banana" String is not moved.
+
+    item is not destroyed.
+
+    The only thing that changes is what the variable largest is referring to.
+
+    What happens to item?
+
+    Nothing special happens.
+
+    For example:
+
+    for item in list {
+        if item > largest {
+            largest = item;
+        }
+
+        println!("{}", item);
+    }
+
+    item can still be used after:
+
+    largest = item;
+
+    because item is a reference:
+
+    &T
+
+    and assigning a reference to another reference variable does not move the underlying T.
+
+    So:
+
+    largest = item;
+
+    does not mean:
+
+    "Take the String from item and give it to largest."
+
+    It means:
+
+    "Make largest contain the same reference that item contains."
+
+    That's why both can still be used.
+
+    For example:
+
+    fn test<T: PartialOrd>(list: &[T]) -> &T {
+        let mut largest = &list[0];
+
+        for item in list {
+            if item > largest {
+                largest = item;
+
+                println!("item is still usable here");
+            }
+        }
+
+        largest
+    }
+
+    item remains valid.
+
+    The simplest way to distinguish the two situations
+    Moving an actual String
+    let string1 = String::from("hello");
+
+    let string2 = string1;
+
+    Here the actual String is moved.
+
+    string1 can no longer be used.
+
+    Assigning a reference
+    let string1 = String::from("hello");
+
+    let reference1 = &string1;
+    let reference2 = reference1;
+
+    Here the String was not moved.
+
+    Both:
+
+    reference1
+    reference2
+
+    are references to the same String.
+
+    Your function is doing the second thing:
+
+    largest = item;
+
+    Both largest and item are references.
+
+    So you're moving/copying the reference value, not moving the String.
+
+    And because references are Copy, item remains usable afterward.
+
+    The key types in your function are therefore:
+
+    list       : &[T]
+    list[0]    : T
+    &list[0]   : &T
+    item        : &T
+    largest     : &T
+
+    That last three are why:
+
+    largest = item;
+
+    doesn't move or destroy the actual element.
+     */
+
+
+
+    /*
+    With the function we just wrote, no — you cannot pass a Vec<String>.
+
+    Because we wrote:
+
+    fn largestvaluegenerics<T: Copy + PartialOrd>(list: &[T]) -> T
+
+    the T must implement both:
+
+    Copy
+    PartialOrd
+
+    String implements PartialOrd, so comparing Strings is possible:
+
+    "banana" > "apple"
+
+    But String does not implement Copy.
+
+    So this will not work:
+
+    let words = vec![
+        String::from("apple"),
+        String::from("banana"),
+        String::from("orange"),
+    ];
+
+    let result = largestvaluegenerics(&words);
+
+    The problem is specifically the Copy requirement.
+
+    But we can change the function
+
+    If we want it to work with String, we don't actually need Copy.
+
+    We can make the function return a reference to the largest item instead:
+
+    fn largestvaluegenerics<T: PartialOrd>(list: &[T]) -> &T {
+        let mut largest = &list[0];
+
+        for item in list {
+            if item > largest {
+                largest = item;
+            }
+        }
+
+        largest
+    }
+
+    Then:
+
+    fn main() {
+        let words = vec![
+            String::from("apple"),
+            String::from("banana"),
+            String::from("orange"),
+        ];
+
+        let result = largestvaluegenerics(&words);
+
+        println!("{}", result);
+    }
+
+    This can return:
+
+    orange
+
+    Here we don't copy any String.
+
+    result is a reference:
+
+    &T
+
+    which in this particular case becomes:
+
+    &String
+
+    So the difference is:
+
+    fn largestvaluegenerics<T: Copy + PartialOrd>(list: &[T]) -> T
+
+    returns the actual value, which requires copying it from the slice.
+
+    Whereas:
+
+    fn largestvaluegenerics<T: PartialOrd>(list: &[T]) -> &T
+
+    returns a reference to the value already inside the slice, so T doesn't need to be Copy.
+
+    This is actually the important reason the Rust Book changes the generic largest example to return a reference when 
+    dealing with types that aren't Copy.
+     */
+
     /*
     Let's start from only these two function signatures and understand exactly what they mean.
 
@@ -761,19 +1696,43 @@ fn main(){
     let result_i32 = largest_value_i32(&number_list);
     println!("The returned value of the function with i32 is: {}", result_i32);
 
+    println!("----------------------------------------------------------------------------");
     let char_list = vec!['E', 'S', 'H'];
     let result_char = largest_value_char(&char_list);
     println!("The returned value of the function with char is: {}", result_char);
 
+    println!("----------------------------------------------------------------------------");
 
     let number_list_2 = vec![20,30,56,78,42,60];
     let result_generic_i32 = largest_value_generics(&number_list_2);
     println!("The returned value of the function with generic i32 is: {}", result_generic_i32);
 
+    println!("----------------------------------------------------------------------------");
 
     let char_list_2 = vec!['A', 'B', 'C'];
     let result_generic_char = largest_value_generics(&char_list_2);
-    println!("The returned value of the function with generic char is: {}", result_generic_char)
+    println!("The returned value of the function with generic char is: {}", result_generic_char);
+    println!("----------------------------------------------------------------------------");
+
+
+
+    let number_list_3 = vec![340, 500, 200, 800, 1000, 650];
+    let result_generic_i32_ref = largest_value_generics_ref(&number_list_3);
+    println!("The returned value of the function with generic i32 reference is: {}", result_generic_i32_ref);
+    println!("----------------------------------------------------------------------------");
+
+
+
+    let char_list_3 = vec!['X', 'Y', 'Z'];
+    let result_generic_char_ref = largest_value_generics_ref(&char_list_3);
+    println!("The returned value of the function with generic char reference is: {}", result_generic_char_ref);
+    println!("----------------------------------------------------------------------------");
+
+    let char_list_3 = vec!["EFE", "SHENEM", "HAEM"];
+    let result_generic_char_ref = largest_value_generics_ref(&char_list_3);
+    println!("The returned value of the function with generic char reference is: {}", result_generic_char_ref);
+    println!("----------------------------------------------------------------------------");
+
 
 
     /*
@@ -848,9 +1807,11 @@ fn main(){
     let b = a;       // Move
     println!("{}", a); // ERROR
 
-    String is not Copy because it owns dynamically allocated data, and automatically copying that ownership would not be the behavior Rust wants.
+    String is not Copy because it owns dynamically allocated data, and automatically copying that ownership would not 
+    be the behavior Rust wants.
 
-    One more important point: char is not an integer like i32, but it is still a small, fixed-size value type and implements Copy.
+    One more important point: char is not an integer like i32, but it is still a small, fixed-size value type and 
+    implements Copy.
 
     So your generic function:
 
@@ -977,7 +1938,8 @@ fn main(){
 
     println!("{}", item);
 
-    And because i32 is Copy, the individual integers themselves are cheap values. But the important ownership point is that the Vec itself has been moved/consumed by the loop.
+    And because i32 is Copy, the individual integers themselves are cheap values. But the important ownership 
+    point is that the Vec itself has been moved/consumed by the loop.
 
     2. Your second code
     let numbers = vec![10, 20, 30];
