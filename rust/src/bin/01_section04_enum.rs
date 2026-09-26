@@ -3624,4 +3624,854 @@ fn main (){
 
 
 
+
+    /*
+    
+    Let's break this down from the very beginning, because Text(&'static str) contains several things at once.
+
+    We have:
+
+    enum Message {
+        Text(&'static str),
+        Number(i32),
+    }
+
+    Let's look only at:
+
+    Text(&'static str)
+
+    It means:
+
+    The Text variant contains one value, and that value is a string slice (&str) that has the 'static lifetime.
+
+    There are three parts:
+
+    Text    (&'static str)
+    │       │        │
+    │       │        └── type: str
+    │       └─────────── reference: &
+    └─────────────────── enum variant name
+
+    I'll explain each one.
+
+    1. Text is the variant name
+
+    Just like:
+
+    enum Message {
+        Number(i32),
+    }
+
+    Number is a variant.
+
+    We can create one:
+
+    let message = Message::Number(25);
+
+    Similarly:
+
+    Text
+
+    is another variant.
+
+    So:
+
+    let message = Message::Text("hello");
+
+    means:
+
+    Create a Message whose variant is Text, and put "hello" inside it.
+
+    2. What does ( ... ) mean?
+
+    Look at:
+
+    Number(i32)
+
+    The parentheses mean:
+
+    This variant contains one value.
+
+    For example:
+
+    let message = Message::Number(25);
+
+    The 25 is the value stored inside the Number variant.
+
+    Likewise:
+
+    Text(&'static str)
+
+    means:
+
+    The Text variant contains one value whose type is &'static str.
+
+    For example:
+
+    let message = Message::Text("hello");
+
+    Here:
+
+    "hello"
+
+    is the value stored inside Text.
+
+    3. What is str?
+
+    You already know that Rust has:
+
+    String
+
+    and:
+
+    &str
+
+    String is an owned, growable string.
+
+    For example:
+
+    let text = String::from("hello");
+
+    text has type:
+
+    String
+
+    But:
+
+    let text = "hello";
+
+    has type:
+
+    &str
+
+    A string literal such as:
+
+    "hello"
+
+    is a string slice.
+
+    So normally you can think:
+
+    "hello"  →  &str
+    4. What does the first & mean?
+
+    Look at:
+
+    &str
+
+    The & means:
+
+    a reference to a string slice.
+
+    So:
+
+    &str
+
+    is a borrowed string slice.
+
+    For example:
+
+    let text = "hello";
+
+    The type of text is:
+
+    &str
+
+    You can also explicitly write:
+
+    let text: &str = "hello";
+    5. Then what is 'static?
+
+    This is the part that usually causes confusion.
+
+    You already learned that 'a in:
+
+    struct Person<'a> {
+        name: &'a str,
+    }
+
+    is a lifetime parameter.
+
+    'static is also a lifetime.
+
+    But it is a special lifetime provided by Rust.
+
+    When you write:
+
+    &'static str
+
+    you are saying:
+
+    This reference is valid for the entire lifetime of the program.
+
+    So:
+
+    &'static str
+
+    means:
+
+    a reference to a string slice that lives for the entire program.
+
+    6. Why does "hello" work with 'static?
+
+    This is the important connection.
+
+    When you write:
+
+    let message = Message::Text("hello");
+
+    the "hello" is a string literal.
+
+    String literals are stored in the program's binary and are available for the entire lifetime of the running program.
+
+    Therefore their type can be treated as:
+
+    &'static str
+
+    So this works:
+
+    enum Message {
+        Text(&'static str),
+        Number(i32),
+    }
+
+    let message = Message::Text("hello");
+
+    The "hello" can satisfy the &'static str requirement.
+
+    7. Why did I use 'static in that example?
+
+    Actually, for teaching the enum itself, we don't necessarily need 'static.
+
+    We could simply write:
+
+    enum Message<'a> {
+        Text(&'a str),
+        Number(i32),
+    }
+
+    Now the enum has a lifetime parameter.
+
+    Then:
+
+    let message = Message::Text("hello");
+
+    can use an appropriate lifetime for the string slice.
+
+    However, if our enum is specifically intended to hold only string literals, we can write:
+
+    enum Message {
+        Text(&'static str),
+        Number(i32),
+    }
+
+    This says something more restrictive:
+
+    Text can contain only a string slice that is valid for the entire program.
+
+    String literals satisfy this.
+
+    8. Compare these three types
+
+    This is worth understanding carefully:
+
+    String
+
+    means:
+
+    An owned string.
+
+    Then:
+
+    &str
+
+    means:
+
+    A borrowed string slice.
+
+    And:
+
+    &'static str
+
+    means:
+
+    A borrowed string slice whose lifetime is 'static, meaning it is valid for the entire program.
+
+    For example:
+
+    let text1: String = String::from("hello");
+
+    let text2: &str = "hello";
+
+    let text3: &'static str = "hello";
+
+    All three contain the text:
+
+    hello
+
+    But they represent different Rust types and ownership/lifetime relationships.
+
+    9. Why can't I put a normal String into this enum?
+
+    With:
+
+    enum Message {
+        Text(&'static str),
+        Number(i32),
+    }
+
+    this works:
+
+    let message = Message::Text("hello");
+
+    But this does not:
+
+    let my_text = String::from("hello");
+
+    let message = Message::Text(my_text);
+
+    because my_text is:
+
+    String
+
+    while Text expects:
+
+    &'static str
+
+    Those are different types.
+
+    You could borrow the String:
+
+    let my_text = String::from("hello");
+
+    let message = Message::Text(&my_text);
+
+    but that still doesn't work here, because &my_text is a reference to my_text whose lifetime is tied to my_text. 
+    It is not necessarily 'static.
+
+    10. If I want the enum to own a normal String
+
+    Then I would simply write:
+
+    enum Message {
+        Text(String),
+        Number(i32),
+    }
+
+    Now:
+
+    let my_text = String::from("hello");
+
+    let message = Message::Text(my_text);
+
+    works.
+
+    Here, the Text variant takes ownership of the String.
+
+    This is often more useful when the text comes from something like:
+
+    a network packet
+    a file
+    user input
+    a database
+    an HTTP request
+
+    because those strings are not necessarily string literals.
+
+    So why did the earlier example use &'static str?
+
+    I used it specifically because I was demonstrating that a string literal can be matched directly:
+
+    match message {
+        Message::Text("hello") => {
+            println!("It is hello");
+        }
+
+        Message::Text(text) => {
+            println!("Some other text: {}", text);
+        }
+
+        Message::Number(number) => {
+            println!("Number: {}", number);
+        }
+    }
+
+    Here:
+
+    "hello"
+
+    can be used directly as a pattern because we're dealing with a string slice (&str), and the string literal has a 
+    'static lifetime.
+
+    If we instead use:
+
+    enum Message {
+        Text(String),
+        Number(i32),
+    }
+
+    then the situation is different, and we cannot write:
+
+    Message::Text("hello") // not the same kind of pattern for String
+
+    So the main thing to remember right now is:
+
+    Text(&'static str)
+
+    means:
+
+    "Text is a variant that contains one borrowed string slice, and that string slice is guaranteed to be valid for the 
+    entire program."
+
+    And:
+
+    Text(String)
+
+    means:
+
+    "Text is a variant that contains one owned String."
+
+    Those are two different designs.
+     */
+
+
+
+     /*
+     
+     Let's slow this down a lot. The difficult part is understanding what &my_text actually is and then understanding 
+     what 'static requires.
+
+    We have:
+
+    enum Message {
+        Text(&'static str),
+        Number(i32),
+    }
+
+    The important part is:
+
+    Text(&'static str)
+
+    It says:
+
+    The Text variant must contain a reference to a string slice, and that reference must remain valid for the entire 
+    lifetime of the program.
+
+    Now look at this:
+
+    let my_text = String::from("hello");
+
+    let message = Message::Text(&my_text);
+
+    Why doesn't this work?
+
+    1. First understand my_text
+
+    When you write:
+
+    let my_text = String::from("hello");
+
+    you create an owned String.
+
+    So:
+
+    my_text
+
+    has type:
+
+    String
+
+    my_text owns the string "hello".
+
+    Now suppose we write:
+
+    let reference = &my_text;
+
+    What is reference?
+
+    It is not another String.
+
+    Its type is:
+
+    &String
+
+    So:
+
+    my_text
+
+    is the owner, while:
+
+    reference
+
+    is borrowing it.
+
+    2. What does &my_text mean?
+
+    When you write:
+
+    &my_text
+
+    the & means:
+
+    "Give me a reference to the value owned by my_text."
+
+    So:
+
+    let reference = &my_text;
+
+    means approximately:
+
+    reference → borrows my_text
+
+    I know you don't like diagrams, so the important thing in normal words is:
+
+    reference does not own the String. my_text still owns it.
+
+    3. Now think about how long my_text exists
+
+    Consider:
+
+    fn main() {
+        let my_text = String::from("hello");
+
+        let reference = &my_text;
+
+        println!("{}", reference);
+    }
+
+    This is perfectly valid.
+
+    Why?
+
+    Because my_text is still alive when we use reference.
+
+    The important relationship is:
+
+    my_text
+
+    must remain alive for as long as:
+
+    reference
+
+    needs to be used.
+
+    4. Now look at 'static
+
+    When we write:
+
+    &'static str
+
+    we are asking for something much stronger.
+
+    'static means:
+
+    This reference is valid for the entire duration of the program.
+
+    So imagine this requirement:
+
+    Text(&'static str)
+
+    The Text variant says:
+
+    "Give me a string reference that I can safely keep for the entire program."
+
+    Now look at:
+
+    let my_text = String::from("hello");
+
+    let message = Message::Text(&my_text);
+
+    What are we giving it?
+
+    We're giving it:
+
+    &my_text
+
+    which is a reference to a String owned by my_text.
+
+    But my_text does not live for the entire program.
+
+    5. How long does my_text live?
+
+    Suppose:
+
+    fn main() {
+        let my_text = String::from("hello");
+
+        let message = Message::Text(&my_text);
+
+        println!("Hello");
+    }
+
+    my_text was created inside main.
+
+    When execution reaches the end of main, my_text is destroyed.
+
+    Therefore the reference:
+
+    &my_text
+
+    cannot remain valid after my_text is destroyed.
+
+    So its lifetime is approximately:
+
+    from the point where my_text is created until my_text is destroyed.
+
+    It is not the lifetime of the entire program.
+
+    6. Compare that with a string literal
+
+    Now look at:
+
+    let message = Message::Text("hello");
+
+    Where does "hello" come from?
+
+    It is a string literal.
+
+    String literals are built into the program itself. They are available for the entire duration of the program.
+
+    Therefore:
+
+    "hello"
+
+    can be treated as:
+
+    &'static str
+
+    That's why this works:
+
+    enum Message {
+        Text(&'static str),
+        Number(i32),
+    }
+
+    let message = Message::Text("hello");
+
+    The string "hello" is available for the whole program.
+
+    7. The key difference
+
+    Compare these:
+
+    String literal
+    let message = Message::Text("hello");
+
+    The "hello" is available for the entire program.
+
+    Therefore:
+
+    "hello"
+
+    can satisfy:
+
+    &'static str
+    Borrowing a local String
+    let my_text = String::from("hello");
+
+    let message = Message::Text(&my_text);
+
+    my_text is a local variable.
+
+    It will eventually be destroyed.
+
+    Therefore:
+
+    &my_text
+
+    does not have a 'static lifetime.
+
+    That's the whole reason.
+
+    8. But there is another thing you should notice
+
+    There is also a type difference.
+
+    We wrote:
+
+    let my_text = String::from("hello");
+
+    so:
+
+    my_text
+
+    has type:
+
+    String
+
+    When we write:
+
+    &my_text
+
+    the type is:
+
+    &String
+
+    But our enum expects:
+
+    &'static str
+
+    Those aren't exactly the same type either.
+
+    Rust can often convert/coerce:
+
+    &String
+
+    to:
+
+    &str
+
+    because a String contains string data.
+
+    So this:
+
+    let my_text = String::from("hello");
+
+    let reference: &str = &my_text;
+
+    is valid.
+
+    But the lifetime is still the problem if the destination requires:
+
+    &'static str
+
+    For example:
+
+    let my_text = String::from("hello");
+
+    let reference: &'static str = &my_text;
+
+    This doesn't work.
+
+    Why?
+
+    Because you're saying:
+
+    "I want a reference to my_text that remains valid for the entire program."
+
+    But my_text is only a local variable.
+
+    9. What if I want to store a reference to my String in the enum?
+
+    Then don't require 'static.
+
+    For example, we can make the enum itself have a lifetime parameter:
+
+    enum Message<'a> {
+        Text(&'a str),
+        Number(i32),
+    }
+
+    Now:
+
+    let my_text = String::from("hello");
+
+    let message = Message::Text(&my_text);
+
+    can work.
+
+    Why?
+
+    Because 'a does not say:
+
+    "This must live forever."
+
+    Instead, it says:
+
+    "The reference stored inside Message must remain valid for whatever lifetime 'a represents."
+
+    So if my_text lives long enough for message, that's enough.
+
+    For example:
+
+    enum Message<'a> {
+        Text(&'a str),
+        Number(i32),
+    }
+
+    fn main() {
+        let my_text = String::from("hello");
+
+        let message = Message::Text(&my_text);
+
+        println!("{}", message);
+    }
+
+    The reference inside message borrows my_text.
+
+    my_text is still alive while message is being used.
+
+    That's okay.
+
+    10. Why would we ever use 'static then?
+
+    Because sometimes we specifically want data that is guaranteed to exist for the whole program.
+
+    For example:
+
+    enum Message {
+        Text(&'static str),
+        Number(i32),
+    }
+
+    is appropriate if Text is supposed to contain things like:
+
+    Message::Text("Connected")
+    Message::Text("Disconnected")
+    Message::Text("Timeout")
+    Message::Text("Invalid request")
+
+    These are string literals.
+
+    They exist for the entire program.
+
+    The simplest way to remember it
+
+    Look at these two:
+
+    &'static str
+
+    means:
+
+    "Borrowed string slice that is valid for the whole program."
+
+    While:
+
+    &'a str
+
+    means:
+
+    "Borrowed string slice whose lifetime is represented by 'a."
+
+    And:
+
+    String
+
+    means:
+
+    "An owned String."
+
+    So this:
+
+    let my_text = String::from("hello");
+    let message = Message::Text(&my_text);
+
+    fails specifically when Message::Text requires:
+
+    &'static str
+
+    because my_text is a local String and does not live for the entire program.
+
+    If we change the enum to:
+
+    enum Message<'a> {
+        Text(&'a str),
+        Number(i32),
+    }
+
+    then borrowing a local String can work because the enum only needs the reference to remain valid for as long as 
+    the enum value needs it.
+      */
+
+
 }
