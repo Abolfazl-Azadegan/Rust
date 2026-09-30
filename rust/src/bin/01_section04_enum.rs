@@ -7,7 +7,7 @@ fn main (){
 
 
 
-    /*
+    /************************************************************************************************************
     The easiest way to understand enum in Rust is to first understand the programming problem that enum solves.
 
     You already understand structs and generics, so I'll build from those.
@@ -1030,7 +1030,7 @@ fn main (){
 
 
 
-     /*
+    /************************************************************************************************************
      
      you can absolutely check the data inside an enum variant and make decisions based on that data. I think the confusing part is that there are actually two levels of information in an enum.
 
@@ -1710,7 +1710,7 @@ fn main (){
       */
 
 
-    /*
+    /************************************************************************************************************
     
     Yes. You are right to question this. In my previous explanation, I mixed two different things and made it more confusing.
 
@@ -2557,7 +2557,7 @@ fn main (){
 
 
 
-    /*
+    /************************************************************************************************************
     
     these are two different questions, and I misunderstood the second one. Let's separate them.
 
@@ -3019,7 +3019,7 @@ fn main (){
 
 
 
-    /*
+    /************************************************************************************************************
     Exactly. Your code is wrong for the same reason, even though the value is an integer. The important issue is not String vs i32. The issue is function calls cannot be used as patterns.
 
     For example:
@@ -3178,7 +3178,7 @@ fn main (){
 
 
 
-     /*
+    /************************************************************************************************************
      We will focus on just one question:
 
     Why does Message::Number(number_to_find) mean something completely different from Message::Number(6)?
@@ -3625,7 +3625,7 @@ fn main (){
 
 
 
-    /*
+    /************************************************************************************************************
     
     Let's break this down from the very beginning, because Text(&'static str) contains several things at once.
 
@@ -4036,7 +4036,7 @@ fn main (){
 
 
 
-     /*
+    /************************************************************************************************************
      
      Let's slow this down a lot. The difficult part is understanding what &my_text actually is and then understanding 
      what 'static requires.
@@ -4474,4 +4474,1240 @@ fn main (){
       */
 
 
+
+    /************************************************************************************************************
+    
+    Yes — your understanding is mostly correct, and you're now very close to the real idea of lifetimes. There are just 
+    two important corrections that will make your mental model accurate.
+
+    Let me go through what you said piece by piece.
+
+    1. Your main idea is correct
+
+    You said:
+
+    Rust should know before the program goes to runtime that the duration of the life of a variable which we reference to 
+    is enough that our struct or enum can reference it as long as that variable is alive.
+
+    Yes.
+
+    This is one of the fundamental purposes of Rust's lifetime system.
+
+    Rust wants to prevent a reference from being used after the value it refers to has been destroyed.
+
+    For example:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    Then:
+
+    fn main() {
+        let name = String::from("EFE");
+
+        let employee = Person {
+            name: &name,
+        };
+
+        println!("{}", employee.name);
+    }
+
+    This is fine.
+
+    Why?
+
+    Because while employee contains:
+
+    &name
+
+    the name variable is still alive.
+
+    Rust's compiler verifies that relationship at compile time.
+
+    2. Your statement about preventing references to dead variables is also correct
+
+    You said:
+
+    Rust will prevent structs and enums reference a variable that is dead.
+
+    Yes.
+
+    For example:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    fn main() {
+        let employee;
+
+        {
+            let name = String::from("EFE");
+
+            employee = Person {
+                name: &name,
+            };
+        }
+
+        println!("{}", employee.name);
+    }
+
+    This is rejected.
+
+    Why?
+
+    Because:
+
+    let name = String::from("EFE");
+
+    creates name inside the inner block.
+
+    When the block ends, name is destroyed.
+
+    But employee still exists outside that block.
+
+    Therefore employee.name would refer to something that no longer exists.
+
+    Rust detects this before running the program.
+
+    So your understanding here is correct.
+
+    3. Your understanding of 'a is close, but here's the important correction
+
+    You said:
+
+    'a is like a label that we assign to a variable and the reference in the struct.
+
+    Almost.
+
+    I would change that sentence to:
+
+    'a is a lifetime parameter that we use to describe and connect the lifetime of a reference with other lifetime constraints.
+
+    Calling it a label is actually a useful beginner mental model, as long as you remember that it isn't literally a 
+    label attached to the variable.
+
+    For example:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    You can think:
+
+    "I'm giving this lifetime relationship the name 'a."
+
+    But 'a isn't attached to name like a tag.
+
+    It is part of the type's lifetime information.
+
+    4. And here's the most important correction
+
+    You said:
+
+    all the variables and references that use the same label will have the same connection to each other and the life 
+    time of all the references to the variable should not exceed the life time of the variable those reference refer to.
+
+    The first part needs correction.
+
+    Using the same lifetime name does NOT mean the things have exactly the same lifetime.
+
+    This is extremely important.
+
+    Suppose:
+
+    struct Person<'a> {
+        first_name: &'a String,
+        last_name: &'a String,
+    }
+
+    The same 'a does not mean:
+
+    first_name and last_name must literally live for exactly the same amount of time.
+
+    Instead, it means Rust is establishing a relationship involving the lifetime 'a.
+
+    A simpler way to think about it is:
+
+    Both references must be valid for the lifetime required by 'a.
+
+    The actual lifetime can be determined by the compiler based on how the struct is used.
+
+    5. Here's a concrete example
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    Now:
+
+    fn main() {
+        let name = String::from("EFE");
+
+        let employee = Person {
+            name: &name,
+        };
+
+        println!("{}", employee.name);
+    }
+
+    Here, the reference inside employee cannot remain valid longer than name.
+
+    That's the important safety rule.
+
+    If Rust determines that employee would need to keep the reference alive after name has been destroyed, it rejects the code.
+
+    6. Your last sentence is very important
+
+    You said:
+
+    if the life duration of the reference is bigger than the variable Rust will generate an error.
+
+    Yes. Exactly.
+
+    That's one of the most useful ways to think about lifetimes.
+
+    A reference cannot be valid longer than the value it references.
+
+    For example:
+
+    fn main() {
+        let employee;
+
+        {
+            let name = String::from("EFE");
+
+            employee = Person {
+                name: &name,
+            };
+        }
+
+        println!("{}", employee.name);
+    }
+
+    The problem is:
+
+    name dies here
+
+    but:
+
+    employee.name is used here
+
+    after name has died.
+
+    So Rust rejects it.
+
+    7. One subtle but important point
+
+    Don't think that Rust is literally measuring:
+
+    "This variable lives for 7 seconds and this reference lives for 8 seconds."
+
+    Lifetimes are compile-time concepts.
+
+    Rust doesn't normally think in terms of actual seconds.
+
+    It analyzes the program's scopes and uses and determines whether references remain valid.
+
+    For example:
+
+    {
+        let name = String::from("EFE");
+
+        let reference = &name;
+
+        println!("{}", reference);
+    }
+
+    Rust sees that reference is used while name is still alive.
+
+    Good.
+
+    But:
+
+    let reference;
+
+    {
+        let name = String::from("EFE");
+
+        reference = &name;
+    }
+
+    println!("{}", reference);
+
+    Rust sees that reference is used after name has been destroyed.
+
+    Bad.
+
+    8. One more correction: lifetimes don't make things live longer
+
+    This is extremely important.
+
+    Suppose you write:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    'a does not say:
+
+    "Keep the String alive for 'a."
+
+    It does not extend the lifetime of anything.
+
+    It only describes a requirement/relationship:
+
+    "The reference stored here must remain valid for the lifetime represented by 'a."
+
+    Rust will not keep name alive because you wrote 'a.
+
+    The owner is still responsible for the String.
+
+    9. Your understanding, rewritten accurately
+
+    If I take what you said and make just the necessary corrections, I would phrase it like this:
+
+    Rust's lifetime system allows the compiler to verify at compile time that references remain valid for as long as 
+    they are used. When a struct or another type contains a reference, Rust needs to know the lifetime relationship of
+     that reference. A lifetime parameter such as 'a gives a name to that lifetime relationship. Rust then uses that 
+     information, together with how the values are used in the program, to make sure that a reference cannot outlive 
+     the value it refers to. If the compiler determines that a reference could be used after its referenced value has 
+     been destroyed, it rejects the program.
+
+    And your "label" idea is useful if you interpret it as:
+
+    'a is a name for a lifetime relationship.
+
+    Just don't interpret it as:
+
+    'a means every variable marked 'a literally lives for exactly the same amount of time.
+
+    That's the main correction.
+
+    The core rule you should keep in your head
+
+    A reference must never be used after the value it refers to is gone.
+
+    And:
+
+    'a doesn't make anything live longer; it lets Rust describe and verify the lifetime relationship of references.
+
+    Your overall understanding is therefore very close. The biggest thing to fix is the idea that the same 'a means 
+    "exactly the same lifetime."
+
+     */
+
+
+
+
+
+    /************************************************************************************************************
+     
+     Let's start from zero and build up Option and Result slowly. They are both enums, so first I want you to 
+     understand why these enums exist.
+
+    1. Why do we need Option and Result?
+
+    Imagine you write a function that searches for a user:
+
+    fn find_user() {
+        // ...
+    }
+
+    Suppose the function searches a database.
+
+    What happens if the user exists?
+
+    You might want to return the user.
+
+    But what happens if the user doesn't exist?
+
+    You need some way to say:
+
+    "I looked for the user, but there isn't one."
+
+    One bad solution would be to return something like:
+
+    String::from("NOT_FOUND")
+
+    But now you have a problem.
+
+    What if "NOT_FOUND" is actually a legitimate username?
+
+    Or perhaps you return:
+
+    0
+
+    to mean "not found."
+
+    But what if 0 is a legitimate result?
+
+    Rust gives us a much better solution:
+
+    Option<T>
+    2. Option is an enum
+
+    Conceptually, Rust's Option is defined like this:
+
+    enum Option<T> {
+        Some(T),
+        None,
+    }
+
+    There are only two possibilities:
+
+    Some(T)
+
+    or:
+
+    None
+
+    That's why Option is an enum.
+
+    It represents:
+
+    Either I have a value, or I don't.
+
+    3. What does <T> mean?
+
+    You already know generics, so this should look familiar:
+
+    enum Option<T> {
+        Some(T),
+        None,
+    }
+
+    T means:
+
+    "The type of the value can be anything."
+
+    For example:
+
+    Option<i32>
+
+    means:
+
+    An Option that can contain an i32.
+
+    And:
+
+    Option<String>
+
+    means:
+
+    An Option that can contain a String.
+
+    And:
+
+    Option<User>
+
+    means:
+
+    An Option that can contain a User.
+
+    4. Some(T)
+
+    Suppose:
+
+    let result = Some(10);
+
+    Rust can infer:
+
+    result: Option<i32>
+
+    Why?
+
+    Because 10 is an i32.
+
+    So conceptually:
+
+    Some(10)
+
+    means:
+
+    "There is a value, and that value is 10."
+
+    Similarly:
+
+    let result = Some(String::from("EFE"));
+
+    means:
+
+    "There is a value, and that value is the String "EFE"."
+
+    Its type is:
+
+    Option<String>
+    5. None
+
+    Now:
+
+    let result: Option<i32> = None;
+
+    means:
+
+    "There is no i32 value."
+
+    Notice something important.
+
+    None doesn't contain a value.
+
+    That's why we need to tell Rust what type of Option we're talking about:
+
+    let result: Option<i32> = None;
+
+    versus:
+
+    let result: Option<String> = None;
+
+    Both are None, but they are different types.
+
+    6. Why is this useful?
+
+    Imagine a function that searches for a number in a vector.
+
+    fn find_number(numbers: &[i32], target: i32) -> Option<i32> {
+        for &number in numbers {
+            if number == target {
+                return Some(number);
+            }
+        }
+
+        None
+    }
+
+    Let's understand the return type:
+
+    -> Option<i32>
+
+    It means:
+
+    This function might return an i32, but it might also return nothing.
+
+    If we call:
+
+    let numbers = vec![10, 20, 30, 40];
+
+    let result = find_number(&numbers, 30);
+
+    we get:
+
+    Some(30)
+
+    because 30 exists.
+
+    If we do:
+
+    let result = find_number(&numbers, 99);
+
+    we get:
+
+    None
+
+    because 99 doesn't exist.
+
+    7. How do we use the result?
+
+    Because result is an enum, we can use match.
+
+    match result {
+        Some(number) => {
+            println!("Found the number: {}", number);
+        }
+
+        None => {
+            println!("Number was not found.");
+        }
+    }
+
+    Now look carefully at:
+
+    Some(number)
+
+    This is the same pattern idea we were just discussing.
+
+    It means:
+
+    "If the enum is Some, take the value inside it and call it number."
+
+    So if:
+
+    result = Some(30)
+
+    then:
+
+    number
+
+    becomes:
+
+    30
+
+    If:
+
+    result = None
+
+    the None arm executes.
+
+    8. Why not just return i32?
+
+    Without Option, we might have:
+
+    fn find_number(numbers: &[i32], target: i32) -> i32
+
+    But what should the function return if it doesn't find the number?
+
+    There isn't a good answer.
+
+    We could invent a special number:
+
+    -1
+
+    But now we're saying:
+
+    "-1 means not found."
+
+    That is dangerous because -1 might actually be a legitimate number.
+
+    Option<i32> solves the problem properly:
+
+    Some(30)
+
+    means:
+
+    We found a value, and it's 30.
+
+    while:
+
+    None
+
+    means:
+
+    There is no value.
+
+    Now the two situations are represented by different enum variants, rather than special numbers.
+
+    9. Option in very simple words
+
+    Think of:
+
+    Option<T>
+
+    as saying:
+
+    "Maybe I have a T."
+
+    For example:
+
+    Option<i32>
+
+    means:
+
+    Maybe I have an i32.
+
+    It can be:
+
+    Some(25)
+
+    or:
+
+    None
+    10. Now let's move to Result
+
+    Result solves a related but different problem.
+
+    Imagine you have a function that tries to read a file.
+
+    There are two broad possibilities:
+
+    The operation succeeds.
+    The operation fails.
+
+    We need to represent both.
+
+    Rust uses:
+
+    enum Result<T, E> {
+        Ok(T),
+        Err(E),
+    }
+
+    There are two variants:
+
+    Ok(T)
+
+    and:
+
+    Err(E)
+    11. What does T mean?
+
+    T represents the type of the successful result.
+
+    For example:
+
+    Result<String, E>
+
+    could mean:
+
+    If the operation succeeds, I'll give you a String.
+
+    And what is E?
+
+    E represents the type of the error.
+
+    For example:
+
+    Result<String, String>
+
+    means:
+
+    Success gives me a String, and failure also gives me a String containing an error message.
+
+    12. Simple example
+
+    Let's create our own function:
+
+    fn divide(a: f64, b: f64) -> Result<f64, String> {
+        if b == 0.0 {
+            return Err(String::from("Cannot divide by zero"));
+        }
+
+        Ok(a / b)
+    }
+
+    Look at the return type:
+
+    Result<f64, String>
+
+    This means:
+
+    The function can either succeed and return an f64, or fail and return a String describing the error.
+
+    13. Successful case
+
+    Call:
+
+    let result = divide(10.0, 2.0);
+
+    The calculation succeeds.
+
+    So the function returns:
+
+    Ok(5.0)
+
+    You can handle it:
+
+    match result {
+        Ok(value) => {
+            println!("Result: {}", value);
+        }
+
+        Err(error) => {
+            println!("Error: {}", error);
+        }
+    }
+
+    The Ok(value) arm gets:
+
+    value = 5.0
+
+    So it prints:
+
+    Result: 5
+    14. Failure case
+
+    Now:
+
+    let result = divide(10.0, 0.0);
+
+    The function detects that division by zero isn't allowed.
+
+    So it returns:
+
+    Err(String::from("Cannot divide by zero"))
+
+    Then:
+
+    match result {
+        Ok(value) => {
+            println!("Result: {}", value);
+        }
+
+        Err(error) => {
+            println!("Error: {}", error);
+        }
+    }
+
+    The Err(error) arm executes.
+
+    The variable:
+
+    error
+
+    contains:
+
+    Cannot divide by zero
+
+    So the output is:
+
+    Error: Cannot divide by zero
+    15. Now understand the difference between Option and Result
+
+    This is the most important part.
+
+    Option
+    enum Option<T> {
+        Some(T),
+        None,
+    }
+
+    It answers:
+
+    "Do I have a value or not?"
+
+    For example:
+
+    Some(50)
+
+    means:
+
+    Yes, I have 50.
+
+    None
+
+    means:
+
+    No, I don't have a value.
+
+    Result
+    enum Result<T, E> {
+        Ok(T),
+        Err(E),
+    }
+
+    It answers:
+
+    "Did the operation succeed or fail?"
+
+    For example:
+
+    Ok(50)
+
+    means:
+
+    The operation succeeded and produced 50.
+
+    And:
+
+    Err("Something went wrong")
+
+    means:
+
+    The operation failed, and here is information about the error.
+
+    16. A very useful comparison
+
+    Suppose you're searching for a user.
+
+    If the user simply doesn't exist:
+
+    Option<User>
+
+    can make sense:
+
+    Some(user)
+
+    or:
+
+    None
+
+    The None means:
+
+    No user was found.
+
+    But suppose you're trying to connect to a server.
+
+    There are many ways it can fail:
+
+    connection refused
+    timeout
+    DNS failure
+    authentication failure
+
+    Then Result makes more sense:
+
+    Result<Connection, ConnectionError>
+
+    because you want to distinguish:
+
+    Ok(connection)
+
+    from:
+
+    Err(error)
+
+    and the error can contain information about why it failed.
+
+    17. One more important difference
+
+    Option:
+
+    Some(value)
+    None
+
+    has no error information.
+
+    None simply means:
+
+    There is no value.
+
+    Result:
+
+    Ok(value)
+    Err(error)
+
+    does contain error information.
+
+    Err(error) means:
+
+    The operation failed, and here is information about the failure.
+
+    That's why the two enums exist separately.
+
+    18. Real Rust code uses these everywhere
+
+    You will see things like:
+
+    let result = numbers.get(3);
+
+    Vec::get() returns an Option.
+
+    Why?
+
+    Because maybe index 3 exists and maybe it doesn't.
+
+    So you might get:
+
+    Some(&value)
+
+    or:
+
+    None
+
+    Another example is reading a file:
+
+    let result = std::fs::read_to_string("config.txt");
+
+    This returns a Result.
+
+    Why?
+
+    Because reading the file might succeed:
+
+    Ok(file_contents)
+
+    or fail:
+
+    Err(error)
+    19. The big picture
+
+    You already learned that an enum means:
+
+    A value can be one of several possible variants.
+
+    Option applies that idea to existence of a value:
+
+    Some(value)
+    None
+
+    Result applies that idea to success or failure of an operation:
+
+    Ok(value)
+    Err(error)
+
+    So when you see:
+
+    Option<String>
+
+    read it as:
+
+    "Maybe there is a String."
+
+    When you see:
+
+    Result<String, MyError>
+
+    read it as:
+
+    "The operation either succeeded and gave me a String, or failed and gave me a MyError."
+
+    And because both are enums, you can use match to determine which situation you have and extract the value when it exists.
+
+    One final thing: Option and Result are so common in Rust that after you understand them, the next important step 
+    is learning if let, while let, and especially the ? operator. Those are the normal ways Rust code handles Option 
+    and Result without writing a full match every time.
+        
+      */
+
+
+    /*
+    
+    Yes. Your understanding is very close, but there is one important wording change I want you to make. 
+    Once you make that change, your mental model will be much more accurate.
+
+    Let's use exactly your code:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    and:
+
+    let name = String::from("EFE");
+
+    let employee = Person {
+        name: &name,
+    };
+    1. Your understanding of <'a> is correct
+
+    You said:
+
+    "'a in <> defines a as a definition for a lifetime."
+
+    Yes, with one small terminology improvement.
+
+    struct Person<'a>
+
+    means:
+
+    "Person has a lifetime parameter called 'a."
+
+    So 'a is a name for a lifetime parameter.
+
+    It does not yet say exactly how long that lifetime is.
+
+    2. Your understanding of &'a String is basically correct
+
+    You said:
+
+    "with &'a we are telling the compiler that when we are creating a struct and we pass a string to the name field, 
+    consider that the lifetime of this reference is equal to the lifetime of the string which we are referencing."
+
+    This is the part I would slightly change.
+
+    Instead of saying:
+
+    "the lifetime of this reference is equal to the lifetime of the String"
+
+    say:
+
+    "The reference stored in name must be valid for the lifetime represented by 'a, and Rust must make sure that the 
+    String being referenced lives at least as long as that reference is required to be valid."
+
+    Why is that wording better?
+
+    Because 'a does not automatically make the reference and the String have exactly equal lifetimes.
+
+    The important requirement is:
+
+    The referenced String must remain alive for at least as long as the reference is being used.
+
+    3. Let's execute your example
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    fn main() {
+        let name = String::from("EFE");
+
+        let employee = Person {
+            name: &name,
+        };
+
+        println!("{}", employee.name);
+    }
+
+    First:
+
+    let name = String::from("EFE");
+
+    creates an owned String.
+
+    Then:
+
+    name: &name,
+
+    means:
+
+    Borrow the String owned by name and put that reference inside employee.
+
+    So employee.name is a reference.
+
+    The important relationship is:
+
+    employee.name
+
+    is allowed to be used while the name String is still alive.
+
+    And in this code:
+
+    println!("{}", employee.name);
+
+    name is still alive.
+
+    So everything is fine.
+
+    4. Now your second statement
+
+    You said:
+
+    "if the string goes out of the scope the reference should die"
+
+    This is almost right, but let's make it more precise.
+
+    The reference itself doesn't necessarily "die because the String died."
+
+    Rather:
+
+    Rust will not allow the reference to be used after the String it refers to has been destroyed.
+
+    For example:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    fn main() {
+        let employee;
+
+        {
+            let name = String::from("EFE");
+
+            employee = Person {
+                name: &name,
+            };
+        }
+
+        println!("{}", employee.name);
+    }
+
+    The problem is here:
+
+    let name = String::from("EFE");
+
+    name exists only inside the inner { }.
+
+    When the inner scope ends:
+
+    }
+
+    name is destroyed.
+
+    But then we try:
+
+    println!("{}", employee.name);
+
+    employee.name contains a reference to name.
+
+    So Rust says, essentially:
+
+    "No. You are trying to use a reference to name, but name doesn't exist anymore."
+
+    And the compiler rejects the program.
+
+    5. One very important correction to your last sentence
+
+    You said:
+
+    "when the name variable is out of scope the reference will also go out of scope."
+
+    Be careful here.
+
+    There are two different things:
+
+    The lifetime/scope of the name variable.
+    The lifetime of the reference stored inside employee.
+
+    The important rule is:
+
+    The reference cannot be valid for longer than the value it refers to.
+
+    It doesn't mean Rust simply destroys the reference automatically at exactly the same moment.
+
+    For example:
+
+    let name = String::from("EFE");
+
+    let employee = Person {
+        name: &name,
+    };
+
+    println!("{}", employee.name);
+
+    Here both are still alive.
+
+    If employee stopped being used earlier, the reference might no longer need to be valid even though name continues to exist.
+
+    For example:
+
+    let name = String::from("EFE");
+
+    {
+        let employee = Person {
+            name: &name,
+        };
+
+        println!("{}", employee.name);
+    }
+
+    println!("{}", name);
+
+    This is perfectly valid.
+
+    The employee and its reference disappear at the end of the inner block, but name continues to exist.
+
+    So their lifetimes do not have to be exactly equal.
+
+    6. The safest mental model
+
+    For your current level, I recommend thinking about it this way:
+
+    struct Person<'a> {
+        name: &'a String,
+    }
+
+    means:
+
+    "Person contains a reference to a String. The lifetime parameter 'a describes how long that reference must remain 
+    valid. Rust uses this information to make sure the referenced String doesn't disappear while the reference is still 
+    being used."
+
+    Then:
+
+    let name = String::from("EFE");
+
+    let employee = Person {
+        name: &name,
+    };
+
+    means:
+
+    employee.name borrows name.
+
+    And Rust guarantees:
+
+    employee.name cannot be used after name has been destroyed.
+
+    That is the core lifetime concept.
+
+    Your original understanding was substantially correct. The main thing I would change is don't think "'a means the 
+    reference and the String have exactly the same lifetime." Think instead: "'a describes the validity requirement of 
+    the reference, and Rust checks that the referenced value lives long enough."
+
+    */
+
+
+
+
+
+    
 }
