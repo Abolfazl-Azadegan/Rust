@@ -5449,7 +5449,7 @@ fn main (){
       */
 
 
-    /*
+    /************************************************************************************************************
     
     Yes. Your understanding is very close, but there is one important wording change I want you to make. 
     Once you make that change, your mental model will be much more accurate.
@@ -5706,8 +5706,802 @@ fn main (){
     */
 
 
-
-
-
+    /************************************************************************************************************
     
+    In Rust, monomorphization is the process where the compiler takes generic code and creates a specific version of that 
+    code for each concrete type that you actually use.
+
+    This is one of the most important ideas behind why Rust can have generics without paying a runtime cost for generic 
+    dispatch in many cases.
+
+    Let's start from zero.
+
+    1. First, what is a generic function?
+
+    You have already seen code like this:
+
+    fn largest<T: Copy + PartialOrd>(list: &[T]) -> T {
+        let mut largest = list[0];
+
+        for &item in list {
+            if item > largest {
+                largest = item;
+            }
+        }
+
+        largest
+    }
+
+    Here, T is a generic type parameter.
+
+    It means:
+
+    "I don't want to write this function specifically for i32, or specifically for f64. I want one function that can work 
+    with many types."
+
+    For example:
+
+    let numbers = vec![10, 20, 30];
+    let result1 = largest(&numbers);
+
+    Here Rust knows:
+
+    T = i32
+
+    And:
+
+    let values = vec![2.5, 8.1, 3.4];
+    let result2 = largest(&values);
+
+    Here:
+
+    T = f64
+
+    So we are using the same generic function with two different types.
+
+    2. What does monomorphization mean?
+
+    The word looks complicated, but break it apart:
+
+    mono = one
+    morph = form/shape
+
+    So roughly:
+
+    monomorphization = turning generic code into concrete, single-type versions
+
+    When Rust compiles this:
+
+    fn largest<T: Copy + PartialOrd>(list: &[T]) -> T {
+        let mut largest = list[0];
+
+        for &item in list {
+            if item > largest {
+                largest = item;
+            }
+        }
+
+        largest
+    }
+
+    and sees:
+
+    let numbers = vec![10, 20, 30];
+    let result1 = largest(&numbers);
+
+    let values = vec![2.5, 8.1, 3.4];
+    let result2 = largest(&values);
+
+    the compiler knows that the function is needed with:
+
+    T = i32
+    T = f64
+
+    Conceptually, the compiler produces specialized versions equivalent to:
+
+    fn largest_i32(list: &[i32]) -> i32 {
+        let mut largest = list[0];
+
+        for &item in list {
+            if item > largest {
+                largest = item;
+            }
+        }
+
+        largest
+    }
+
+    and:
+
+    fn largest_f64(list: &[f64]) -> f64 {
+        let mut largest = list[0];
+
+        for &item in list {
+            if item > largest {
+                largest = item;
+            }
+        }
+
+        largest
+    }
+
+    This is the basic idea of monomorphization.
+
+    The compiler does not literally rewrite your source code into functions named largest_i32 and largest_f64 like this. 
+    These are conceptual versions that help you understand what the compiler is doing.
+
+    3. Why does Rust do this?
+
+    The big reason is performance.
+
+    Suppose you write:
+
+    fn add<T>(a: T, b: T) -> T {
+        // ...
+    }
+
+    and use it with different concrete types.
+
+    Rust can generate specialized machine code for each concrete type.
+
+    For example:
+
+    add(10, 20)
+
+    could have machine code specialized for i32.
+
+    And:
+
+    add(1.5, 2.5)
+
+    could have machine code specialized for f64.
+
+    The compiler knows exactly what types are involved when generating the final executable.
+
+    That means Rust can often make generic code perform similarly to code that was written specifically for each type.
+
+    This is one reason Rust generics are often described as having zero-cost abstractions.
+
+    4. Compare this with what you might expect from generics
+
+    Imagine this generic function:
+
+    fn print_value<T>(value: T) {
+        println!("{}", value);
+    }
+
+    Conceptually, if you call it with:
+
+    print_value(100);
+    print_value(3.14);
+
+    Rust needs versions corresponding to:
+
+    T = i32
+    T = f64
+
+    Conceptually:
+
+    print_value_i32(100);
+    print_value_f64(3.14);
+
+    Again, those aren't the actual names Rust generates. They are just a way to understand the result.
+
+    5. When does monomorphization happen?
+
+    It happens during compilation, not when your program is running.
+
+    This is very important.
+
+    Suppose you have:
+
+    fn square<T>(value: T) -> T {
+        value * value
+    }
+
+    Ignoring the necessary trait bound for a moment, imagine you call:
+
+    let first = square(5);
+    let second = square(10);
+
+    Both calls use:
+
+    T = i32
+
+    Rust doesn't need a completely separate implementation for every call.
+
+    It needs a specialized implementation for:
+
+    square<i32>
+
+    So both calls can use that generated implementation.
+
+    If you then use another type:
+
+    let third = square(2.5);
+
+    then Rust needs another specialization:
+
+    square<f64>
+
+    So the important distinction is:
+
+    One specialization per concrete type used, not one specialization per function call.
+
+    6. What happens with your generic Point<T>?
+
+    You have also studied generic structs like:
+
+    struct Point<T> {
+        x: T,
+        y: T,
+    }
+
+    Now suppose:
+
+    let point1 = Point {
+        x: 10,
+        y: 20,
+    };
+
+    Rust infers:
+
+    Point<i32>
+
+    And:
+
+    let point2 = Point {
+        x: 10.5,
+        y: 20.5,
+    };
+
+    is:
+
+    Point<f64>
+
+    Your source contains only:
+
+    struct Point<T> {
+        x: T,
+        y: T,
+    }
+
+    But the compiler needs concrete representations.
+
+    Conceptually, you can think of it as producing:
+
+    struct Point_i32 {
+        x: i32,
+        y: i32,
+    }
+
+    and:
+
+    struct Point_f64 {
+        x: f64,
+        y: f64,
+    }
+
+    Again, these names are just for understanding. Rust's internal representation and generated symbols are more complicated.
+
+    7. Monomorphization also applies to impl<T>
+
+    You previously had:
+
+    struct Point<T> {
+        x: T,
+        y: T,
+    }
+
+    impl<T> Point<T> {
+        fn return_x(&self) -> &T {
+            &self.x
+        }
+    }
+
+    This says:
+
+    For any T, Point<T> has a return_x method.
+
+    Suppose you create:
+
+    let point1 = Point {
+        x: 10,
+        y: 20,
+    };
+
+    and:
+
+    let point2 = Point {
+        x: 1.5,
+        y: 2.5,
+    };
+
+    Then you have:
+
+    Point<i32>
+    Point<f64>
+
+    When the methods are actually needed, Rust can generate specialized code for those concrete types.
+
+    Conceptually:
+
+    impl Point<i32> {
+        fn return_x(&self) -> &i32 {
+            &self.x
+        }
+    }
+
+    and:
+
+    impl Point<f64> {
+        fn return_x(&self) -> &f64 {
+            &self.x
+        }
+    }
+
+    That's monomorphization again.
+
+    8. Why is this important for Rust?
+
+    There are two important consequences.
+
+    Performance
+
+    Generic code can be specialized for the actual type.
+
+    For example, if Rust knows:
+
+    T = i32
+
+    it knows exactly what kind of value it is working with.
+
+    There doesn't necessarily need to be a runtime mechanism asking:
+
+    "What type is T right now?"
+
+    The compiler already knows.
+
+    Code size
+
+    There is a trade-off.
+
+    Suppose you have:
+
+    fn process<T>(value: T) {
+        // lots of code
+    }
+
+    and use it with:
+
+    i32
+    f64
+    String
+    char
+    MyStruct
+    AnotherStruct
+
+    Rust may generate multiple specialized versions.
+
+    So generics can potentially increase the size of the compiled binary.
+
+    This is one of the costs associated with monomorphization.
+
+    9. Monomorphization vs dynamic dispatch
+
+    This is a very important distinction you'll encounter later when learning traits.
+
+    Rust has two broad ways of working with polymorphism.
+
+    One is static dispatch, which is commonly associated with generics:
+
+    fn process<T: SomeTrait>(value: T) {
+        // ...
+    }
+
+    The compiler knows the concrete type at compile time and can monomorphize the function.
+
+    The other is dynamic dispatch:
+
+    fn process(value: &dyn SomeTrait) {
+        // ...
+    }
+
+    Here the concrete type can be selected at runtime.
+
+    For example:
+
+    let value: &dyn SomeTrait = &some_object;
+
+    Rust can use a mechanism called a vtable to determine which implementation to call.
+
+    So, very roughly:
+
+    Generic T
+        compile time
+        monomorphization
+        specialized code
+        usually static dispatch
+
+    versus:
+
+    dyn Trait
+        runtime
+        dynamic dispatch
+        vtable
+
+    You don't need to fully understand dyn Trait yet. The important thing for now is that generics and dyn Trait are two 
+    different approaches to polymorphism.
+
+    10. One subtle but important point
+
+    You might think:
+
+    "If I write a generic function, Rust immediately generates code for every possible type."
+
+    No.
+
+    Rust does not generate:
+
+    i8
+    i16
+    i32
+    i64
+    u8
+    u16
+    u32
+    u64
+    f32
+    f64
+    String
+    char
+    ...
+
+    just because your function has T.
+
+    It generates specialized code for the concrete types that are actually required by your program.
+
+    For example:
+
+    fn display<T: std::fmt::Display>(value: T) {
+        println!("{}", value);
+    }
+
+    fn main() {
+        display(100);
+        display(3.14);
+    }
+
+    Here the compiler needs versions for the concrete types used:
+
+    T = i32
+    T = f64
+
+    It doesn't need a String version if you never call:
+
+    display(String::from("hello"));
+    11. The simplest definition to remember
+
+    If you remember only one thing, remember this:
+
+    Monomorphization is Rust's compile-time process of turning generic code into specialized code for the concrete types 
+    with which the generic code is used.
+
+    For example:
+
+    fn show<T>(value: T) {
+        // generic code
+    }
+
+    If you use it as:
+
+    show(10);       // T = i32
+    show(3.14);     // T = f64
+    show('A');      // T = char
+
+    the compiler conceptually creates specialized versions for:
+
+    show<i32>
+    show<f64>
+    show<char>
+
+    This happens before your program runs.
+
+    And that's why Rust can give you the convenience of generics while still producing highly specialized machine code.
+     */
+
+
+    /************************************************************************************************************
+    
+    No — you do not write or use monomorphization in your Rust code.
+
+    This is the most important point.
+
+    Monomorphization is something the Rust compiler does automatically for you when it compiles your program.
+
+    You write generics. Rust then uses monomorphization internally to turn those generics into concrete code.
+
+    Let's build this from the beginning.
+
+    1. What you write
+
+    Suppose you write:
+
+    fn print_value<T>(value: T) {
+        println!("{}", value);
+    }
+
+    You are writing a generic function.
+
+    The T means:
+
+    "I don't want to decide the exact type here yet."
+
+    You can then use it with different types:
+
+    print_value(10);
+    print_value(3.14);
+    print_value('A');
+
+    At this point, you have told Rust:
+
+    First call:  T is i32
+    Second call: T is f64
+    Third call:  T is char
+
+    You did not tell Rust:
+
+    "Please monomorphize this."
+
+    You don't need to.
+
+    2. What Rust does automatically
+
+    When Rust compiles your program, it sees that the generic function is being used with:
+
+    i32
+    f64
+    char
+
+    So Rust can create specialized versions of the function.
+
+    Conceptually, you can imagine Rust doing something like this:
+
+    fn print_value_i32(value: i32) {
+        println!("{}", value);
+    }
+
+    fn print_value_f64(value: f64) {
+        println!("{}", value);
+    }
+
+    fn print_value_char(value: char) {
+        println!("{}", value);
+    }
+
+    Again, you did not write these functions.
+
+    They represent the idea of what monomorphization produces.
+
+    The compiler handles this.
+
+    3. So what is the purpose?
+
+    The purpose is to allow you to write generic code while Rust can still generate specialized machine code.
+
+    For example, imagine you want a function that finds the largest number.
+
+    Without generics, you might write:
+
+    fn largest_i32(numbers: &[i32]) -> i32 {
+        let mut largest = numbers[0];
+
+        for &number in numbers {
+            if number > largest {
+                largest = number;
+            }
+        }
+
+        largest
+    }
+
+    Then you might want the same thing for f64:
+
+    fn largest_f64(numbers: &[f64]) -> f64 {
+        let mut largest = numbers[0];
+
+        for &number in numbers {
+            if number > largest {
+                largest = number;
+            }
+        }
+
+        largest
+    }
+
+    Notice that the code is almost identical.
+
+    That's annoying.
+
+    So instead, you write one generic function:
+
+    fn largest<T: Copy + PartialOrd>(numbers: &[T]) -> T {
+        let mut largest = numbers[0];
+
+        for &number in numbers {
+            if number > largest {
+                largest = number;
+            }
+        }
+
+        largest
+    }
+
+    Now you can write:
+
+    let numbers = vec![10, 30, 20];
+    let biggest_number = largest(&numbers);
+
+    let values = vec![2.5, 8.7, 4.1];
+    let biggest_value = largest(&values);
+
+    Rust figures out:
+
+    first call:  T = i32
+    second call: T = f64
+
+    Then, during compilation, monomorphization specializes the generic function for those concrete types.
+
+    So you get the convenience of:
+
+    largest(&numbers)
+    largest(&values)
+
+    without having to manually write:
+
+    largest_i32(...)
+    largest_f64(...)
+    4. This is the relationship you should remember
+
+    There are three different things here:
+
+    You write:
+
+    Generics
+
+    fn largest<T: Copy + PartialOrd>(numbers: &[T]) -> T
+    Rust compiler does:
+
+    Monomorphization
+
+    It determines which concrete types are being used and generates specialized versions.
+
+    Your computer runs:
+
+    Machine code
+
+    The final executable contains compiled machine code generated by the compiler.
+
+    So:
+
+    Generics are something you use. Monomorphization is something Rust does.
+
+    5. You don't "run" monomorphization
+
+    This is another important correction.
+
+    You asked:
+
+    "when we run the code?"
+
+    More precisely, monomorphization happens during compilation, before the resulting program runs.
+
+    When you do:
+
+    cargo run
+
+    Cargo essentially causes two important stages:
+
+    compile your Rust program
+    then
+    run the compiled program
+
+    Monomorphization belongs to the compilation stage.
+
+    You don't see it happening while your program is running.
+
+    6. Why did Rust choose this approach?
+
+    Because it can give you both:
+
+    Reusable code
+
+    fn largest<T>(...)
+
+    and
+
+    specialized code
+
+    Conceptually:
+
+    largest_i32(...)
+    largest_f64(...)
+    largest_char(...)
+
+    This can avoid the need for certain runtime type decisions.
+
+    That's one of the reasons Rust's generics are considered a zero-cost abstraction: you can write one generic 
+    implementation, while the compiler can specialize it for the concrete types you actually use.
+
+    7. One final example
+
+    Suppose you write:
+
+    struct Point<T> {
+        x: T,
+        y: T,
+    }
+
+    impl<T> Point<T> {
+        fn get_x(&self) -> &T {
+            &self.x
+        }
+    }
+
+    Then:
+
+    let point1 = Point {
+        x: 10,
+        y: 20,
+    };
+
+    let point2 = Point {
+        x: 1.5,
+        y: 2.5,
+    };
+
+    Rust determines:
+
+    point1: Point<i32>
+    point2: Point<f64>
+
+    You wrote only:
+
+    impl<T> Point<T> {
+        fn get_x(&self) -> &T {
+            &self.x
+        }
+    }
+
+    But the compiler can specialize it conceptually into something like:
+
+    impl Point<i32> {
+        fn get_x(&self) -> &i32 {
+            &self.x
+        }
+    }
+
+    and:
+
+    impl Point<f64> {
+        fn get_x(&self) -> &f64 {
+            &self.x
+        }
+    }
+
+    That automatic specialization is monomorphization.
+
+    So when you are coding Rust, don't think:
+
+    "I need to use monomorphization."
+
+    Think:
+
+    "I can write generic code, and Rust will automatically monomorphize it during compilation."
+
+    That's the whole idea.
+     */
+
+
+
 }
