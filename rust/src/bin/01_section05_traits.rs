@@ -1,11 +1,57 @@
 
+pub trait Summary {
+    fn summarization(&self) -> String;
+}
+
+pub struct NewArticle {
+    pub headline: String,
+    pub location: String,
+    pub author: String,
+    pub content: String,
+}
+
+impl Summary for NewArticle{
+    fn summarization(&self) -> String {
+        format!("{}, by {} ({})", self.headline, self.author, self.location)
+    }
+}
 
 
+pub struct Tweet {
+    pub username: String,
+    pub content: String,
+    pub reply: bool,
+    pub retweet: bool,
+}
+
+impl Summary for Tweet{
+    fn summarization(&self) -> String {
+        format!("{}: {}", self.username, self.content)
+    }
+}
 
 
 fn main(){
 
 
+    let article1 = NewArticle{
+        headline: String::from("Article 1"),
+        location: String::from("Location 1"),
+        author: String::from("Author 1"),
+        content: String::from("Content 1"),
+    };
+
+    println!("{}", article1.summarization());
+
+    let tweet1 = Tweet{
+        username: String::from("User 1"),
+        content: String::from("Content 1"),
+        reply: true,
+        retweet: false,
+    };
+
+
+    println!("{}", tweet1.summarization());
 
     /*
     
@@ -1357,6 +1403,583 @@ fn main(){
     
      */
 
+
+
+
+     /*
+     
+     pub is a very important next topic because it introduces visibility in Rust.
+
+    You already understand the trait part of this code. Now let's focus on what pub means and why it appears in 
+    several different places.
+
+    1. What does pub mean?
+
+    pub is short for public.
+
+    It controls who is allowed to access something.
+
+    By default, many things in Rust are private.
+
+    So when you write:
+
+    pub struct NewArticle {
+
+    you are saying:
+
+    "This NewArticle type can be accessed from outside the module where it is defined."
+
+    And when you write:
+
+    pub trait Summary {
+
+    you are saying:
+
+    "The Summary trait can be accessed from outside the module where it is defined."
+
+    And:
+
+    pub headline: String,
+
+    means:
+
+    "The headline field can be accessed from outside the module where NewArticle is defined."
+
+    So pub is basically Rust's way of saying:
+
+    "This item is publicly accessible."
+
+    2. Why does Rust need this?
+
+    Imagine your program becomes large.
+
+    You might have:
+
+    main.rs
+    network.rs
+    database.rs
+    user.rs
+
+    Each file/module contains many things.
+
+    You probably don't want everything inside network.rs to automatically be accessible everywhere.
+
+    For example, maybe you have:
+
+    struct NetworkConnection {
+        ip_address: String,
+        password: String,
+    }
+
+    You might want other parts of the program to use NetworkConnection, but you don't want them to directly access the password.
+
+    Rust lets you control this.
+
+    You could write:
+
+    pub struct NetworkConnection {
+        pub ip_address: String,
+        password: String,
+    }
+
+    Now:
+
+    NetworkConnection itself is public.
+    ip_address is public.
+    password is private.
+
+    So another module can access:
+
+    connection.ip_address
+
+    but cannot directly access:
+
+    connection.password
+
+    This is called visibility.
+
+    3. Let's look at your code
+
+    You have:
+
+    pub trait Summary {
+        fn summarization(&self) -> String;
+    }
+
+    There are two separate concepts here:
+
+    pub trait Summary
+
+    and:
+
+    fn summarization(&self) -> String;
+
+    pub applies to the trait itself.
+
+    So:
+
+    pub trait Summary
+
+    means:
+
+    The Summary trait is publicly accessible.
+
+    It does not mean that the method automatically becomes public.
+
+    This distinction is important.
+
+    4. What about the method inside the trait?
+
+    You have:
+
+    pub trait Summary {
+        fn summarization(&self) -> String;
+    }
+
+    Notice that you did not write:
+
+    pub fn summarization
+
+    You wrote:
+
+    fn summarization
+
+    This is intentional.
+
+    A trait method is part of the trait's interface.
+
+    When another type implements the trait:
+
+    impl Summary for NewArticle {
+        fn summarization(&self) -> String {
+            format!(
+                "{}, by {} ({})",
+                self.headline,
+                self.author,
+                self.location
+            )
+        }
+    }
+
+    that method is available as part of the trait implementation according to the trait's visibility.
+
+    So you don't normally write:
+
+    impl Summary for NewArticle {
+        pub fn summarization(...)
+    }
+
+    In fact, you should not add pub there.
+
+    5. Now look at this
+    pub struct NewArticle {
+        pub headline: String,
+        pub location: String,
+        pub author: String,
+        pub content: String,
+    }
+
+    There are actually two different levels of visibility here.
+
+    First:
+
+    pub struct NewArticle
+
+    makes the struct itself public.
+
+    Second:
+
+    pub headline
+    pub location
+    pub author
+    pub content
+
+    makes each field public.
+
+    These are separate decisions.
+
+    6. This is very important: public struct does NOT mean public fields
+
+    You could write:
+
+    pub struct NewArticle {
+        headline: String,
+        location: String,
+        author: String,
+        content: String,
+    }
+
+    Now NewArticle is public, but all of its fields are private.
+
+    That means another module can know that NewArticle exists and can potentially use it through its public API, but it 
+    cannot directly do:
+
+    article.headline
+
+    from outside the module where the field is private.
+
+    So:
+
+    pub struct NewArticle
+
+    and:
+
+    pub headline: String
+
+    control different things.
+
+    The first controls the visibility of the type.
+
+    The second controls the visibility of the field.
+
+    7. Let's make this concrete with modules
+
+    This is where pub becomes much easier to understand.
+
+    Imagine we have:
+
+    mod news {
+        pub struct NewArticle {
+            pub headline: String,
+            author: String,
+        }
+    }
+
+    And then:
+
+    fn main() {
+        let article1 = news::NewArticle {
+            headline: String::from("Article 1"),
+            author: String::from("Author 1"),
+        };
+    }
+
+    There are two problems here.
+
+    NewArticle is public:
+
+    pub struct NewArticle
+
+    so main is allowed to use the type.
+
+    headline is public:
+
+    pub headline: String
+
+    so main is allowed to provide a value for it.
+
+    But author is private:
+
+    author: String
+
+    so main cannot directly access that field from outside the news module.
+
+    8. Why would we want private fields?
+
+    This is extremely common in real software.
+
+    Imagine:
+
+    pub struct BankAccount {
+        pub owner: String,
+        balance: f64,
+    }
+
+    We might want people to know who owns the account:
+
+    account.owner
+
+    But we don't necessarily want arbitrary code to directly change:
+
+    account.balance
+
+    Instead, we might provide methods:
+
+    impl BankAccount {
+        pub fn deposit(&mut self, amount: f64) {
+            self.balance += amount;
+        }
+
+        pub fn balance(&self) -> f64 {
+            self.balance
+        }
+    }
+
+    Now other code can do:
+
+    account.deposit(100.0);
+
+    but cannot directly do:
+
+    account.balance = -999999.0;
+
+    This is one of the major purposes of visibility.
+
+    You control how other parts of the program interact with your data.
+
+    9. Your Tweet has the same idea
+
+    You wrote:
+
+    pub struct Tweet {
+        pub username: String,
+        pub content: String,
+        pub reply: bool,
+        pub retweet: bool,
+    }
+
+    This means:
+
+    The type is public
+    pub struct Tweet
+
+    Other modules can use Tweet.
+
+    The fields are public
+    pub username
+    pub content
+    pub reply
+    pub retweet
+
+    Other modules can directly access those fields.
+
+    For example:
+
+    tweet1.username
+
+    is allowed because username is public.
+
+    10. What if we remove pub?
+
+    Suppose we change:
+
+    pub struct Tweet {
+        pub username: String,
+        pub content: String,
+        pub reply: bool,
+        pub retweet: bool,
+    }
+
+    to:
+
+    struct Tweet {
+        pub username: String,
+        pub content: String,
+        pub reply: bool,
+        pub retweet: bool,
+    }
+
+    Now the Tweet type itself is private.
+
+    Even though the fields say pub, another module can't simply use Tweet because the type itself isn't publicly accessible.
+
+    This gives you an important rule:
+
+    The visibility of the outer item matters too.
+
+    11. pub doesn't mean "global"
+
+    This is another common misunderstanding.
+
+    pub does not mean:
+
+    "Everyone everywhere can access this."
+
+    Rust has a module system and visibility rules.
+
+    pub means that the item is public according to Rust's module visibility system.
+
+    For example:
+
+    mod news {
+        pub struct NewArticle {
+            pub headline: String,
+        }
+    }
+
+    Then from outside that module:
+
+    news::NewArticle
+
+    can be accessed because NewArticle is public.
+
+    Without pub:
+
+    mod news {
+        struct NewArticle {
+            pub headline: String,
+        }
+    }
+
+    the type is private to the news module.
+
+    12. What does pub have to do with your trait?
+
+    Your example has:
+
+    pub trait Summary {
+        fn summarization(&self) -> String;
+    }
+
+    Why make the trait public?
+
+    Imagine your trait is in a library/module:
+
+    mod articles {
+        pub trait Summary {
+            fn summarization(&self) -> String;
+        }
+    }
+
+    If Summary were private, code outside that module couldn't use the trait as part of its public interface.
+
+    By writing:
+
+    pub trait Summary
+
+    you're saying:
+
+    "Summary is part of the public API of this module."
+
+    This becomes particularly important when you're writing libraries/crates that other Rust programs will use.
+
+    13. Your entire example
+
+    Let's annotate your code:
+
+    pub trait Summary {
+        fn summarization(&self) -> String;
+    }
+
+    This means:
+
+    Create a public trait called Summary.
+
+    The trait requires:
+
+    fn summarization(&self) -> String;
+
+    which means:
+
+    Any type implementing Summary must provide a method named summarization that takes &self and returns a String.
+
+    Then:
+
+    pub struct NewArticle {
+        pub headline: String,
+        pub location: String,
+        pub author: String,
+        pub content: String,
+    }
+
+    means:
+
+    Create a public struct called NewArticle, and make all four fields public.
+
+    Then:
+
+    impl Summary for NewArticle {
+
+    means:
+
+    Make NewArticle implement the Summary trait.
+
+    Then:
+
+    fn summarization(&self) -> String {
+        format!("{}, by {} ({})", self.headline, self.author, self.location)
+    }
+
+    provides the actual implementation of the trait method for NewArticle.
+
+    So calling:
+
+    article1.summarization()
+
+    uses the NewArticle implementation.
+
+    Then:
+
+    pub struct Tweet {
+        pub username: String,
+        pub content: String,
+        pub reply: bool,
+        pub retweet: bool,
+    }
+
+    creates another public type with public fields.
+
+    And:
+
+    impl Summary for Tweet {
+        fn summarization(&self) -> String {
+            format!("{}: {}", self.username, self.content)
+        }
+    }
+
+    says:
+
+    Tweet also implements Summary, but its implementation of summarization() is different.
+
+    Therefore:
+
+    article1.summarization()
+
+    and:
+
+    tweet1.summarization()
+
+    have the same method name, because the trait requires that name, but they execute different implementations.
+
+    14. The key idea you should remember
+
+    You now have three closely related concepts:
+
+    struct
+
+    Defines a type and its data:
+
+    struct Tweet {
+        username: String,
+        content: String,
+    }
+    trait
+
+    Defines behavior that types can implement:
+
+    trait Summary {
+        fn summarization(&self) -> String;
+    }
+    pub
+
+    Controls whether an item is publicly accessible outside its module:
+
+    pub struct Tweet
+    pub trait Summary
+    pub username: String
+
+    And these are independent decisions.
+
+    For example:
+
+    pub struct Tweet {
+        username: String,
+    }
+
+    means:
+
+    The Tweet type is public, but its username field is private.
+
+    Whereas:
+
+    struct Tweet {
+        pub username: String,
+    }
+
+    means:
+
+    The Tweet type itself is private, so the public field doesn't make the type publicly usable from outside its module.
+      */
 
 
 }
