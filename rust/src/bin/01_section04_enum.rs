@@ -1,9 +1,461 @@
+/************************************************************************************************************
+let integer: Option<i32> = Some(5);
+let float: Option<f64> = Some(5.0);
 
-
-
-
+enum Option_i32{
+    Some(i32),
+    None,
+}
+enum Option_f64{
+    Some(f64),
+    None,
+}
+*/
 
 fn main (){
+
+    /************************************************************************************************************
+    let integer= Option_i32::Some(5);
+    let float= Option_f64::Some(5.0);
+    */
+
+
+    /************************************************************************************************************
+    
+    Yes — the confusion comes from the fact that this example is showing two different things at the same time:
+
+    The real Rust Option<T> type
+    A manual example showing what would happen if we had to create a separate enum for every type.
+
+    Let's go through your code from zero.
+
+    1. First, these two lines
+    let integer: Option<i32> = Some(5);
+    let float: Option<f64> = Some(5.0);
+
+    These are not supposed to be outside main() in normal Rust code.
+
+    A let variable declaration like this normally belongs inside a function:
+
+    fn main() {
+        let integer: Option<i32> = Some(5);
+        let float: Option<f64> = Some(5.0);
+    }
+
+    So if you literally have:
+
+    let integer: Option<i32> = Some(5);
+    let float: Option<f64> = Some(5.0);
+
+    fn main() {
+        ...
+    }
+
+    that is not valid ordinary Rust program structure.
+
+    At the top level of a Rust file, you normally define things such as:
+
+    struct
+    enum
+    fn
+    const
+    static
+
+    but not ordinary local variables with let.
+
+    So the first thing to understand is that those let statements should be inside main().
+
+    2. Now let's look at the two enums
+
+    You have:
+
+    enum Option_i32 {
+        Some(i32),
+        None,
+    }
+
+    This creates a new enum type called Option_i32.
+
+    It has two possible variants:
+
+    Some(i32)
+
+    and
+
+    None
+
+    So you can create:
+
+    let integer = Option_i32::Some(5);
+
+    The type of integer is:
+
+    Option_i32
+
+    And the value inside it is:
+
+    5
+
+    You could also create:
+
+    let integer = Option_i32::None;
+
+    Now the value doesn't contain an integer.
+
+    3. Then you created another enum
+    enum Option_f64 {
+        Some(f64),
+        None,
+    }
+
+    This is another completely different type.
+
+    It can contain an f64:
+
+    let float = Option_f64::Some(5.0);
+
+    So:
+
+    integer: Option_i32
+    float:   Option_f64
+
+    The problem is obvious:
+
+    If you wanted another type, for example String, you'd need another enum:
+
+    enum Option_String {
+        Some(String),
+        None,
+    }
+
+    And for char:
+
+    enum Option_char {
+        Some(char),
+        None,
+    }
+
+    And for u32:
+
+    enum Option_u32 {
+        Some(u32),
+        None,
+    }
+
+    That would be terrible.
+
+    We would have to create a separate enum for every possible type.
+
+    4. This is exactly why generics exist
+
+    Rust gives us the generic Option<T>.
+
+    Conceptually, Rust defines:
+
+    enum Option<T> {
+        Some(T),
+        None,
+    }
+
+    Now let's understand T.
+
+    T is a generic type parameter.
+
+    It means:
+
+    "The type that goes inside Some will be decided later."
+
+    So:
+
+    Option<i32>
+
+    means:
+
+    T is i32.
+
+    Therefore:
+
+    Some(5)
+
+    is an Option<i32>.
+
+    Similarly:
+
+    Option<f64>
+
+    means:
+
+    T is f64.
+
+    Therefore:
+
+    Some(5.0)
+
+    is an Option<f64>.
+
+    And:
+
+    Option<String>
+
+    means:
+
+    T is String.
+
+    So:
+
+    Some(String::from("hello"))
+
+    is an Option<String>.
+
+    5. Now compare the two approaches
+
+    Without generics, you would need:
+
+    enum Option_i32 {
+        Some(i32),
+        None,
+    }
+
+    enum Option_f64 {
+        Some(f64),
+        None,
+    }
+
+    enum Option_String {
+        Some(String),
+        None,
+    }
+
+    That's a lot of repeated code.
+
+    With generics, you write this once:
+
+    enum Option<T> {
+        Some(T),
+        None,
+    }
+
+    And then you can use it with different types:
+
+    Option<i32>
+    Option<f64>
+    Option<String>
+    Option<char>
+    Option<u32>
+
+    That's the purpose of the generic parameter T.
+
+    6. Now your main() becomes clearer
+
+    You showed:
+
+    fn main (){
+
+        let integer= Option_i32::Some(5);
+        let float= Option_f64::Some(5.0);
+
+    This is creating values from your manually-created enums.
+
+    The first one:
+
+    let integer = Option_i32::Some(5);
+
+    means:
+
+    Create an Option_i32 value using its Some variant and put 5 inside it.
+
+    The second:
+
+    let float = Option_f64::Some(5.0);
+
+    means:
+
+    Create an Option_f64 value using its Some variant and put 5.0 inside it.
+
+    7. Why did the example also show this?
+    let integer: Option<i32> = Some(5);
+    let float: Option<f64> = Some(5.0);
+
+    These are using Rust's real generic Option<T>.
+
+    Compare:
+
+    let integer: Option<i32> = Some(5);
+
+    with your manual version:
+
+    let integer: Option_i32 = Option_i32::Some(5);
+
+    They are conceptually demonstrating the same problem and solution.
+
+    Your manual version says:
+
+    Option_i32
+
+    The generic version says:
+
+    Option<i32>
+
+    Your manual version needs a separate enum:
+
+    Option_i32
+
+    for every type.
+
+    The generic version needs only:
+
+    Option<T>
+    8. There is one more important thing about Some
+
+    When you write:
+
+    Some(5)
+
+    you might wonder:
+
+    "Where did Some come from? I didn't write Option::Some."
+
+    Some is a variant of the Option enum.
+
+    Conceptually:
+
+    enum Option<T> {
+        Some(T),
+        None,
+    }
+
+    So you can think of:
+
+    Some(5)
+
+    as the Some variant of Option<i32>.
+
+    You can also write it explicitly:
+
+    Option::Some(5)
+
+    although Rust normally lets you simply write:
+
+    Some(5)
+
+    because Some is commonly brought into scope.
+
+    9. Now we can connect this to monomorphization
+
+    This is probably why you encountered this example while learning about monomorphization.
+
+    You write:
+
+    enum Option<T> {
+        Some(T),
+        None,
+    }
+
+    This is generic code.
+
+    Then you use:
+
+    let integer: Option<i32> = Some(5);
+    let float: Option<f64> = Some(5.0);
+
+    Now Rust knows that your program uses:
+
+    Option<i32>
+    Option<f64>
+
+    During compilation, Rust's monomorphization process can specialize the generic implementation for those concrete types.
+
+    Conceptually, you can imagine:
+
+    Option<i32>
+
+    becoming something like:
+
+    enum Option_i32 {
+        Some(i32),
+        None,
+    }
+
+    and:
+
+    Option<f64>
+
+    becoming something like:
+
+    enum Option_f64 {
+        Some(f64),
+        None,
+    }
+
+    This is why your example shows Option_i32 and Option_f64.
+
+    It is demonstrating what happens conceptually when generic code is specialized.
+
+    But remember:
+
+    You don't normally write Option_i32 and Option_f64. Rust's standard library already gives you the generic Option<T>.
+
+    10. The whole example rewritten correctly
+
+    If we want to demonstrate the idea cleanly, we could write:
+
+    enum Option_i32 {
+        Some(i32),
+        None,
+    }
+
+    enum Option_f64 {
+        Some(f64),
+        None,
+    }
+
+    fn main() {
+        let integer: Option_i32 = Option_i32::Some(5);
+        let float: Option_f64 = Option_f64::Some(5.0);
+    }
+
+    This is the non-generic approach.
+
+    Then the generic approach is:
+
+    enum MyOption<T> {
+        Some(T),
+        None,
+    }
+
+    fn main() {
+        let integer: MyOption<i32> = MyOption::Some(5);
+        let float: MyOption<f64> = MyOption::Some(5.0);
+    }
+
+    Now one enum can work with both i32 and f64.
+
+    And this:
+
+    MyOption<T>
+
+    is exactly the kind of generic code that Rust can monomorphize during compilation.
+
+    The key idea
+
+    Don't think:
+
+    "Monomorphization is something I need to write."
+
+    Think:
+
+    "I write generic code such as Option<T>. When I actually use it as Option<i32> or Option<f64>, Rust's compiler can 
+    generate specialized code for those concrete types. That compiler process is called monomorphization."
+
+    So generics are the feature you use; monomorphization is part of what the compiler does with your generic code.
+     */
+
+
+
+
+
+
+
 
 
 
